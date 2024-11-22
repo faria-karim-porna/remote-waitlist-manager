@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -39,42 +50,81 @@ mongoose_1.default
     .connect(mongoUri)
     .then(() => console.log("Connected to MongoDB"))
     .catch((err) => console.log("Error connecting to MongoDB:", err));
-// Define the waitlist schema
+var EnumStatus;
+(function (EnumStatus) {
+    EnumStatus["None"] = "None";
+    EnumStatus["SeatIn"] = "Seat In";
+    EnumStatus["InWaitingList"] = "In Waiting List";
+    EnumStatus["ServiceCompleted"] = "Service Completed";
+})(EnumStatus || (EnumStatus = {}));
 const waitlistSchema = new mongoose_1.default.Schema({
     name: String,
     partySize: Number,
-    checkedIn: { type: Boolean, default: false },
+    status: { type: String, enum: Object.values(EnumStatus), default: EnumStatus.None },
     joinedAt: { type: Date, default: Date.now },
+    canCheckIn: { type: Boolean, default: false },
 });
 const Waitlist = mongoose_1.default.model("Waitlist", waitlistSchema);
+let totalSeats = 10;
 // WebSocket connection handling
 io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
-    // Send the current queue status every 5 seconds
-    const interval = setInterval(() => {
-        Waitlist.find({ checkedIn: false }).then((queue) => {
-            socket.emit("queueStatus", queue);
-        });
-    }, 5000);
+    // Check seat availability
+    socket.on("check-seats", (name) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c;
+        console.log(`Checking seats for name: ${name}`);
+        const fillUpSeats = (_a = (yield Waitlist.find({ status: EnumStatus.SeatIn })).length) !== null && _a !== void 0 ? _a : 0;
+        const availableSeats = totalSeats - fillUpSeats;
+        const firstWaitingPartyInfo = (yield Waitlist.find({ status: EnumStatus.InWaitingList }))[0];
+        if (name === ((_b = firstWaitingPartyInfo === null || firstWaitingPartyInfo === void 0 ? void 0 : firstWaitingPartyInfo.name) !== null && _b !== void 0 ? _b : "")) {
+            if (((_c = firstWaitingPartyInfo.partySize) !== null && _c !== void 0 ? _c : 0) <= availableSeats) {
+                socket.emit("seats-available", {
+                    message: "Seats available",
+                    seatsLeft: availableSeats,
+                });
+            }
+        }
+    }));
     // Cleanup on disconnect
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
-        clearInterval(interval);
+        // clearInterval(interval);
     });
 });
 // API Routes
 app.post("/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("body", req.body);
+    var _a, _b;
     const { name, partySize } = req.body;
-    const newEntry = new Waitlist({ name, partySize });
+    let newUser = {
+        name: name,
+        partySize: partySize,
+        status: EnumStatus.InWaitingList,
+    };
+    const fillUpSeats = (_a = (yield Waitlist.find({ status: EnumStatus.SeatIn })).length) !== null && _a !== void 0 ? _a : 0;
+    const availableSeats = totalSeats - fillUpSeats;
+    const isNoPeopleInWaiting = !((_b = (yield Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length) !== null && _b !== void 0 ? _b : 0);
+    if (isNoPeopleInWaiting) {
+        if ((partySize !== null && partySize !== void 0 ? partySize : 0) <= availableSeats) {
+            newUser = Object.assign(Object.assign({}, newUser), { canCheckIn: true });
+        }
+        else {
+            newUser = Object.assign(Object.assign({}, newUser), { canCheckIn: false, waitingPosition: 1 });
+        }
+    }
+    else {
+        const waitingListLastPosition = (yield Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
+        newUser = Object.assign(Object.assign({}, newUser), { canCheckIn: false, waitingPosition: waitingListLastPosition + 1 });
+    }
+    const { waitingPosition } = newUser, userWithoutPosition = __rest(newUser, ["waitingPosition"]);
+    const newEntry = new Waitlist(Object.assign({}, userWithoutPosition));
     yield newEntry.save();
-    res.status(201).send("Joined the waitlist");
+    res.status(201).json({ message: "Item has been added", user: newUser });
 }));
 app.post("/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.body;
     const party = yield Waitlist.findById(id);
     if (party) {
-        party.checkedIn = true;
+        // party.checkedIn = true;
         yield party.save();
         res.status(200).send("Checked in");
     }

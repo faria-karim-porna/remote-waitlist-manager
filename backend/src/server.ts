@@ -31,47 +31,95 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log("Error connecting to MongoDB:", err));
 
+enum EnumStatus {
+  None = "None",
+  SeatIn = "Seat In",
+  InWaitingList = "In Waiting List",
+  ServiceCompleted = "Service Completed",
+}
+
 // Define the waitlist schema
+
+type User = {
+  name?: string;
+  partySize?: number;
+  status: EnumStatus;
+  joinedAt?: Date;
+  canCheckIn?: boolean;
+  waitingPosition?: number;
+};
 const waitlistSchema = new mongoose.Schema({
   name: String,
   partySize: Number,
-  checkedIn: { type: Boolean, default: false },
+  status: { type: String, enum: Object.values(EnumStatus), default: EnumStatus.None },
   joinedAt: { type: Date, default: Date.now },
+  canCheckIn: { type: Boolean, default: false },
 });
 const Waitlist = mongoose.model("Waitlist", waitlistSchema);
+
+let totalSeats = 10;
 
 // WebSocket connection handling
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  // Send the current queue status every 5 seconds
-  const interval = setInterval(() => {
-    Waitlist.find({ checkedIn: false }).then((queue) => {
-      socket.emit("queueStatus", queue);
-    });
-  }, 5000);
+  // Check seat availability
+  socket.on("check-seats", async (name: string) => {
+    console.log(`Checking seats for name: ${name}`);
+    const fillUpSeats = (await Waitlist.find({ status: EnumStatus.SeatIn })).length ?? 0;
+    const availableSeats = totalSeats - fillUpSeats;
+    const firstWaitingPartyInfo = (await Waitlist.find({ status: EnumStatus.InWaitingList }))[0];
+    if (name === (firstWaitingPartyInfo?.name ?? "")) {
+      if ((firstWaitingPartyInfo.partySize ?? 0) <= availableSeats) {
+        socket.emit("seats-available", {
+          message: "Seats available",
+          seatsLeft: availableSeats,
+        });
+      }
+    }
+  });
 
   // Cleanup on disconnect
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-    clearInterval(interval);
+    // clearInterval(interval);
   });
 });
 
 // API Routes
 app.post("/join", async (req: Request, res: Response) => {
-  console.log("body", req.body);
   const { name, partySize }: { name: string; partySize: number } = req.body;
-  const newEntry = new Waitlist({ name, partySize });
+
+  let newUser: User = {
+    name: name,
+    partySize: partySize,
+    status: EnumStatus.InWaitingList,
+  };
+
+  const fillUpSeats = (await Waitlist.find({ status: EnumStatus.SeatIn })).length ?? 0;
+  const availableSeats = totalSeats - fillUpSeats;
+  const isNoPeopleInWaiting = !((await Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length ?? 0);
+  if (isNoPeopleInWaiting) {
+    if ((partySize ?? 0) <= availableSeats) {
+      newUser = { ...newUser, canCheckIn: true };
+    } else {
+      newUser = { ...newUser, canCheckIn: false, waitingPosition: 1 };
+    }
+  } else {
+    const waitingListLastPosition = (await Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
+    newUser = { ...newUser, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 };
+  }
+  const { waitingPosition, ...userWithoutPosition } = newUser;
+  const newEntry = new Waitlist({ ...userWithoutPosition });
   await newEntry.save();
-  res.status(201).send("Joined the waitlist");
+  res.status(201).json({ message: "Item has been added", user: newUser });
 });
 
 app.post("/checkin", async (req: Request, res: Response) => {
   const { id } = req.body;
   const party = await Waitlist.findById(id);
   if (party) {
-    party.checkedIn = true;
+    // party.checkedIn = true;
     await party.save();
     res.status(200).send("Checked in");
   } else {
