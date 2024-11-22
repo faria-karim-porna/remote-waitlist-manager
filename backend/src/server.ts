@@ -1,28 +1,45 @@
-import express, { Application } from "express";
-import mongoose from "mongoose";
+// server.ts (Backend)
+import express, { Request, Response } from "express";
+import http from "http";
+import { Server } from "socket.io";
 import cors from "cors";
-import dotenv from "dotenv";
-import waitlistRoutes from './routes/waitlist';
 
-dotenv.config();
+const app = express();
+const server = http.createServer(app);
 
-const app: Application = express();
+// Define CORS options for WebSocket
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // Frontend URL (React app)
+    methods: ["GET", "POST"],
+    allowedHeaders: ["my-custom-header"],
+    credentials: true,
+  },
+});
 
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Frontend URL
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
-const mongoUri: string | undefined = process.env.MONGO_URI;
-if (!mongoUri) {
-  throw new Error("MONGO_URI is not defined in the environment variables");
-}
+// WebSocket connection
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
 
-mongoose
-  .connect(mongoUri)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  const interval = setInterval(() => {
+    socket.emit("message", `Message from server at ${new Date().toLocaleTimeString()}`);
+  }, 5000);
 
-const port: number = parseInt(process.env.PORT || "5000", 10);
-app.listen(port, () => console.log(`Server running on port ${port}`));
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+    clearInterval(interval);
+  });
+});
 
-app.use('/api/waitlist', waitlistRoutes);
-
+const PORT = 5000;
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
