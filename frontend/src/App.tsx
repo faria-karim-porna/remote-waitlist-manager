@@ -9,15 +9,20 @@ const App: React.FC = () => {
   const [partySize, setPartySize] = useState(1);
   const [queue, setQueue] = useState<any[]>([]);
   const [status, setStatus] = useState("");
+  const [readyState, setReadyState] = useState(false);
 
   useEffect(() => {
     socket.on("queueStatus", (newQueue: any) => {
+      setReadyState(true);
       setQueue(newQueue);
     });
 
-    // return () => {
-    //   socket.disconnect();
-    // };
+    return () => {
+      if (readyState) {
+        setReadyState(false);
+        socket.disconnect();
+      }
+    };
   }, []);
 
   const handleJoin = () => {
