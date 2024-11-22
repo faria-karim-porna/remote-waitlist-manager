@@ -1,16 +1,19 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Waitlist from "./Waitlist.tsx";
-import JoinWaitlist from "./JoinWaitlist.tsx";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { WaitlistProvider } from "./contexts/WaitlistContext";
+import HomePage from "./pages/HomePage";
+import QueuePage from "./pages/QueuePage";
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<JoinWaitlist />} />
-        <Route path="/waitlist" element={<Waitlist />} />
-      </Routes>
-    </Router>
+    <WaitlistProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/queue" element={<QueuePage />} />
+        </Routes>
+      </Router>
+    </WaitlistProvider>
   );
 };
 

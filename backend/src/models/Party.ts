@@ -1,7 +1,8 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
-// Define the interface for the document
+// Define the interface for the Party document
 export interface IParty extends Document {
+  _id: null | string;
   name: string;
   size: number;
   status: "waiting" | "seated";
@@ -9,14 +10,14 @@ export interface IParty extends Document {
 }
 
 // Define the schema
-const partySchema: Schema<IParty> = new Schema({
+const partySchema: Schema<IParty> = new mongoose.Schema({
   name: { type: String, required: true },
   size: { type: Number, required: true },
   status: { type: String, enum: ["waiting", "seated"], default: "waiting" },
   createdAt: { type: Date, default: Date.now },
 });
 
-// Create and export the model
+// Define the model
 const Party: Model<IParty> = mongoose.model<IParty>("Party", partySchema);
 
 export default Party;

@@ -1,28 +1,37 @@
-import express, { Application } from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
-import waitlistRoutes from './routes/waitlist';
+import http from 'http';
+import express, { Request, Response } from 'express';
+import WebSocket, { Server as WebSocketServer, WebSocket as Ws } from 'ws';
+import waitlistRouter from './routes/waitlist';
 
-dotenv.config();
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 
-const app: Application = express();
-
-app.use(cors());
 app.use(express.json());
+app.use('/waitlist', waitlistRouter);
 
-const mongoUri: string | undefined = process.env.MONGO_URI;
-if (!mongoUri) {
-  throw new Error("MONGO_URI is not defined in the environment variables");
+// Type for WebSocket connections stored by party ID
+interface ClientConnections {
+  [partyId: string]: Ws;
 }
 
-mongoose
-  .connect(mongoUri)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+const clientConnections: ClientConnections = {}; // Map to store WebSocket connections by party ID
 
-const port: number = parseInt(process.env.PORT || "5000", 10);
-app.listen(port, () => console.log(`Server running on port ${port}`));
+wss.on('connection', (ws: Ws, req: Request) => {
+  ws.on('message', (message: string) => {
+    const { partyId }: { partyId: string } = JSON.parse(message);
+    clientConnections[partyId] = ws; // Store WebSocket connection for the party
+    console.log(`WebSocket connection established for party: ${partyId}`);
+  });
 
-app.use('/api/waitlist', waitlistRoutes);
+  ws.on('close', () => {
+    console.log('WebSocket connection closed');
+  });
+});
 
+const PORT = 5000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+export { clientConnections };

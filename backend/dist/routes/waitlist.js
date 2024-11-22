@@ -13,44 +13,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const Party_1 = __importDefault(require("../models/Party"));
+const WaitlistController_1 = __importDefault(require("../controllers/WaitlistController"));
 const router = express_1.default.Router();
-// Add party to the waitlist
+// Define routes with proper type annotations
 router.post("/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, size } = req.body;
     try {
-        const party = new Party_1.default({ name, size });
-        yield party.save();
-        res.status(201).json(party);
+        yield WaitlistController_1.default.addParty(req, res);
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        console.error("Error:", err);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }));
-// Get current waitlist
-router.get("/", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const waitlist = yield Party_1.default.find({ status: "waiting" }).sort("createdAt");
-        res.json(waitlist);
+        yield WaitlistController_1.default.getQueue(req, res);
     }
     catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Error fetching queue:", err);
+        res.status(500).json({ error: "Failed to fetch the waitlist queue." });
     }
 }));
-// Check-in party
 router.post("/checkin/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const party = yield Party_1.default.findById(req.params.id);
-        if (!party) {
-            res.status(404).json({ message: "Party not found" });
-            return;
-        }
-        party.status = "seated";
-        yield party.save();
-        res.json(party);
+        yield WaitlistController_1.default.checkIn(req, res);
     }
     catch (err) {
-        res.status(400).json({ error: err.message });
+        console.error("Error during check-in:", err);
+        res.status(500).json({ error: "Failed to process check-in." });
     }
 }));
 exports.default = router;

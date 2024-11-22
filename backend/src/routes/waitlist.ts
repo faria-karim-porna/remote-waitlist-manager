@@ -1,44 +1,33 @@
-import express, { Request, Response, Router } from "express";
-import Party, { IParty } from "../models/Party";
+import express, { Request, Response } from "express";
+import WaitlistController from "../controllers/WaitlistController";
 
-const router: Router = express.Router();
+const router = express.Router();
 
-// Add party to the waitlist
+// Define routes with proper type annotations
 router.post("/join", async (req: Request, res: Response): Promise<void> => {
-  const { name, size }: { name: string; size: number } = req.body;
   try {
-    const party: IParty = new Party({ name, size });
-    await party.save();
-    res.status(201).json(party);
+    await WaitlistController.addParty(req, res);
   } catch (err) {
-    res.status(400).json({ error: (err as Error).message });
+    console.error("Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// Get current waitlist
-router.get("/", async (_req: Request, res: Response): Promise<void> => {
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const waitlist: IParty[] = await Party.find({ status: "waiting" }).sort("createdAt");
-    res.json(waitlist);
+    await WaitlistController.getQueue(req, res);
   } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+    console.error("Error fetching queue:", err);
+    res.status(500).json({ error: "Failed to fetch the waitlist queue." });
   }
 });
 
-// Check-in party
 router.post("/checkin/:id", async (req: Request, res: Response): Promise<void> => {
   try {
-    const party: IParty | null = await Party.findById(req.params.id);
-    if (!party) {
-      res.status(404).json({ message: "Party not found" });
-      return;
-    }
-
-    party.status = "seated";
-    await party.save();
-    res.json(party);
+    await WaitlistController.checkIn(req, res);
   } catch (err) {
-    res.status(400).json({ error: (err as Error).message });
+    console.error("Error during check-in:", err);
+    res.status(500).json({ error: "Failed to process check-in." });
   }
 });
 
