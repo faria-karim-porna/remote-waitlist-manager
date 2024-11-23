@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import http from "http";
-import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -9,13 +8,6 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173", // Frontend URL
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
 
 app.use(cors());
 app.use(express.json());
@@ -53,32 +45,6 @@ const usersListSchema = new mongoose.Schema({
   canCheckIn: { type: Boolean, default: false },
 });
 const UsersList = mongoose.model("UsersList", usersListSchema);
-
-let totalSeats = 10;
-
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
-  socket.on("check-seats", async (name: string) => {
-    console.log(`Checking seats for name: ${name}`);
-    const fillUpSeats = (await UsersList.find({ status: EnumStatus.SeatIn })).length ?? 0;
-    const availableSeats = totalSeats - fillUpSeats;
-    const firstWaitingPartyInfo = (await UsersList.find({ status: EnumStatus.InWaitingList }))[0];
-    if (name === (firstWaitingPartyInfo?.name ?? "")) {
-      if ((firstWaitingPartyInfo.partySize ?? 0) <= availableSeats) {
-        socket.emit("seats-available", {
-          message: "Seats available",
-          seatsLeft: availableSeats,
-        });
-      }
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-    // clearInterval(interval);
-  });
-});
 
 
 app.post("/api/join", async (req: Request, res: Response) => {
@@ -156,7 +122,6 @@ app.get("/api/user/:name", async (req: Request<{ name: string }>, res: Response)
       }
       if (allUsersInfo[index].name === name) {
         user = allUsersInfo[index].toObject() as User;
-        console.log(user);
         if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
           user = { ...user, waitingPosition: waitingPosition };
         }

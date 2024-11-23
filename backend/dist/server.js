@@ -25,20 +25,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
-const socket_io_1 = require("socket.io");
 const cors_1 = __importDefault(require("cors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
-const io = new socket_io_1.Server(server, {
-    cors: {
-        origin: "http://localhost:5173", // Frontend URL
-        methods: ["GET", "POST"],
-        credentials: true,
-    },
-});
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 const mongoUri = process.env.MONGO_URI;
@@ -64,29 +56,6 @@ const usersListSchema = new mongoose_1.default.Schema({
     canCheckIn: { type: Boolean, default: false },
 });
 const UsersList = mongoose_1.default.model("UsersList", usersListSchema);
-let totalSeats = 10;
-io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
-    socket.on("check-seats", (name) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c;
-        console.log(`Checking seats for name: ${name}`);
-        const fillUpSeats = (_a = (yield UsersList.find({ status: EnumStatus.SeatIn })).length) !== null && _a !== void 0 ? _a : 0;
-        const availableSeats = totalSeats - fillUpSeats;
-        const firstWaitingPartyInfo = (yield UsersList.find({ status: EnumStatus.InWaitingList }))[0];
-        if (name === ((_b = firstWaitingPartyInfo === null || firstWaitingPartyInfo === void 0 ? void 0 : firstWaitingPartyInfo.name) !== null && _b !== void 0 ? _b : "")) {
-            if (((_c = firstWaitingPartyInfo.partySize) !== null && _c !== void 0 ? _c : 0) <= availableSeats) {
-                socket.emit("seats-available", {
-                    message: "Seats available",
-                    seatsLeft: availableSeats,
-                });
-            }
-        }
-    }));
-    socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
-        // clearInterval(interval);
-    });
-});
 app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
     const totalSeatsCount = 10;
@@ -159,7 +128,6 @@ app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, funct
             }
             if (allUsersInfo[index].name === name) {
                 user = allUsersInfo[index].toObject();
-                console.log(user);
                 if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
                     user = Object.assign(Object.assign({}, user), { waitingPosition: waitingPosition });
                 }
