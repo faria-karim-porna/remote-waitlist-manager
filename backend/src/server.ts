@@ -127,6 +127,22 @@ app.post("/checkin", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/api/user/:name", async (req: Request<{ name: string }>, res: Response): Promise<any> => {
+  const { name } = req.params;
+
+  try {
+    const user = await Waitlist.findOne({ name });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user: user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error });
+  }
+});
+
 // Start the server
 const PORT = 5000;
 server.listen(PORT, () => {

@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 // import { io, Socket } from "socket.io-client";
 
@@ -18,43 +19,32 @@ type User = {
 };
 
 const App: React.FC = () => {
-  const [name, setName] = useState("");
-  const [partySize, setPartySize] = useState(1);
-  // const [queue, setQueue] = useState<any[]>([]);
-
-  // const [readyState, setReadyState] = useState(false);
-  const [user, setUser] = useState<User>({});
-
   const setUserInLocalStorage = (name: string) => {
     localStorage.setItem("user", name);
   };
-
   const getUserFromLocalStorage = () => {
     const storedUser = localStorage.getItem("user") ?? "";
     return storedUser;
   };
-
-  useEffect(() => {
-    if (getUserFromLocalStorage()) {
-      // call api
-      // setUser(name);
+  const [name, setName] = useState("");
+  const [partySize, setPartySize] = useState(1);
+  const [user, setUser] = useState<User>({});
+  const fetchUser = async (userName: string) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
+      setUser(response.data.user);
+    } catch {
+      setUser({});
     }
+  };
+  useEffect(() => {
+    const userName = getUserFromLocalStorage();
+    fetchUser(userName);
   }, []);
 
-  // useEffect(() => {
-  //   socket.emit("check-seats", user);
-  //   socket.on("seats-available", (data) => {
-  //     if (data.message) {
-  //       // setCanCheckIn(true);
-  //     }
-  //   });
-  //   return () => {
-  //     if (readyState) {
-  //       setReadyState(false);
-  //       socket.disconnect();
-  //     }
-  //   };
-  // }, [user]);
+  useEffect(() => {
+    // join the socket room using username
+  }, [user]);
 
   const handleJoin = () => {
     fetch("http://localhost:5000/join", {
@@ -72,20 +62,6 @@ const App: React.FC = () => {
         }
       });
   };
-
-  // const handleCheckIn = async (id: string) => {
-  //   const response = await fetch("http://localhost:5000/checkin", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ id }),
-  //   });
-
-  //   if (response.ok) {
-  //     setStatus("Checked in successfully");
-  //   } else {
-  //     setStatus("Failed to check in");
-  //   }
-  // };
 
   return (
     <div style={{ padding: "20px" }}>
