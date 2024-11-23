@@ -43,7 +43,7 @@ enum EnumStatus {
 type User = {
   name?: string;
   partySize?: number;
-  status: EnumStatus;
+  status?: EnumStatus;
   joinedAt?: Date;
   canCheckIn?: boolean;
   waitingPosition?: number;
@@ -87,31 +87,47 @@ io.on("connection", (socket) => {
 });
 
 // API Routes
-app.post("/join", async (req: Request, res: Response) => {
+app.post("/api/join", async (req: Request, res: Response) => {
+  const totalSeatsCount = 10;
   const { name, partySize }: { name: string; partySize: number } = req.body;
+  let bookedSeatsCount = 0;
+  let canCheckInSeatsCount = 0;
+  let usersInWaitingListCount = 0;
+  const allUserInfo = await Waitlist.find();
 
+  for (let index = 0; index < allUserInfo.length; index++) {
+    if (allUserInfo[index].status === EnumStatus.SeatIn) {
+      bookedSeatsCount = bookedSeatsCount + (allUserInfo[index]?.partySize ?? 0);
+    }
+    if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === true) {
+      canCheckInSeatsCount = canCheckInSeatsCount + (allUserInfo[index]?.partySize ?? 0);
+    }
+    if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === false) {
+      usersInWaitingListCount = usersInWaitingListCount + 1;
+    }
+  }
+
+  const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
+  const isSeatAvailable = partySize <= availableSeatsCount;
+  const isNoUserInWaiting = usersInWaitingListCount === 0;
   let newUser: User = {
     name: name,
     partySize: partySize,
-    status: EnumStatus.InWaitingList,
   };
-
-  const fillUpSeats = (await Waitlist.find({ status: EnumStatus.SeatIn })).length ?? 0;
-  const availableSeats = totalSeats - fillUpSeats;
-  const isNoPeopleInWaiting = !((await Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length ?? 0);
-  if (isNoPeopleInWaiting) {
-    if ((partySize ?? 0) <= availableSeats) {
-      newUser = { ...newUser, canCheckIn: true };
-    } else {
-      newUser = { ...newUser, canCheckIn: false, waitingPosition: 1 };
-    }
+  if (isSeatAvailable && isNoUserInWaiting) {
+    newUser = { ...newUser, status: EnumStatus.SeatIn };
+    //   run a schedule
+    //   after setTimeout remove the user from the seated database
+    //  and send notification to the waited list party about check in
+    //  and send notification to the other waited list party about changed waiting list
+    //  and send notification to the person about thank you for coming
   } else {
     const waitingListLastPosition = (await Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
-    newUser = { ...newUser, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 };
+    newUser = { ...newUser, status: EnumStatus.InWaitingList, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 };
   }
   const { waitingPosition, ...userWithoutPosition } = newUser;
-  const newEntry = new Waitlist({ ...userWithoutPosition });
-  await newEntry.save();
+  const newUserEntry = new Waitlist({ ...userWithoutPosition });
+  await newUserEntry.save();
   res.status(201).json({ message: "Item has been added", user: newUser });
 });
 
@@ -131,7 +147,23 @@ app.get("/api/user/:name", async (req: Request<{ name: string }>, res: Response)
   const { name } = req.params;
 
   try {
-    const user = await Waitlist.findOne({ name });
+    const allUsersInfo = await Waitlist.find();
+    let user: User = {};
+    let waitingPosition = 0;
+
+    for (let index = 0; index < allUsersInfo.length; index++) {
+      if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
+        waitingPosition = waitingPosition + 1;
+      }
+      if (allUsersInfo[index].name === name) {
+        user = allUsersInfo[index].toObject() as User;
+        console.log(user);
+        if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
+          user = { ...user, waitingPosition: waitingPosition };
+        }
+        break;
+      }
+    }
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

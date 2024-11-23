@@ -32,11 +32,13 @@ const App: React.FC = () => {
   const fetchUser = async (userName: string) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
+      console.log(response.data.user);
       setUser(response.data.user);
     } catch {
       setUser({});
     }
   };
+
   useEffect(() => {
     const userName = getUserFromLocalStorage();
     fetchUser(userName);
@@ -47,7 +49,7 @@ const App: React.FC = () => {
   }, [user]);
 
   const handleJoin = () => {
-    fetch("http://localhost:5000/join", {
+    fetch("http://localhost:5000/api/join", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -78,9 +80,9 @@ const App: React.FC = () => {
         <div>Your waiting position is {user?.waitingPosition}</div>
       ) : user.status === EnumStatus.SeatIn ? (
         <div>Enjoy Your Service</div>
-      ) : (
+      ) : user.status === EnumStatus.ServiceCompleted ? (
         <div>Thank You For Coming</div>
-      )}
+      ) : null}
     </div>
   );
 };

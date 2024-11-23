@@ -92,32 +92,47 @@ io.on("connection", (socket) => {
     });
 });
 // API Routes
-app.post("/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    const totalSeatsCount = 10;
     const { name, partySize } = req.body;
+    let bookedSeatsCount = 0;
+    let canCheckInSeatsCount = 0;
+    let usersInWaitingListCount = 0;
+    const allUserInfo = yield Waitlist.find();
+    for (let index = 0; index < allUserInfo.length; index++) {
+        if (allUserInfo[index].status === EnumStatus.SeatIn) {
+            bookedSeatsCount = bookedSeatsCount + ((_b = (_a = allUserInfo[index]) === null || _a === void 0 ? void 0 : _a.partySize) !== null && _b !== void 0 ? _b : 0);
+        }
+        if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === true) {
+            canCheckInSeatsCount = canCheckInSeatsCount + ((_d = (_c = allUserInfo[index]) === null || _c === void 0 ? void 0 : _c.partySize) !== null && _d !== void 0 ? _d : 0);
+        }
+        if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === false) {
+            usersInWaitingListCount = usersInWaitingListCount + 1;
+        }
+    }
+    const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
+    const isSeatAvailable = partySize <= availableSeatsCount;
+    const isNoUserInWaiting = usersInWaitingListCount === 0;
     let newUser = {
         name: name,
         partySize: partySize,
-        status: EnumStatus.InWaitingList,
     };
-    const fillUpSeats = (_a = (yield Waitlist.find({ status: EnumStatus.SeatIn })).length) !== null && _a !== void 0 ? _a : 0;
-    const availableSeats = totalSeats - fillUpSeats;
-    const isNoPeopleInWaiting = !((_b = (yield Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length) !== null && _b !== void 0 ? _b : 0);
-    if (isNoPeopleInWaiting) {
-        if ((partySize !== null && partySize !== void 0 ? partySize : 0) <= availableSeats) {
-            newUser = Object.assign(Object.assign({}, newUser), { canCheckIn: true });
-        }
-        else {
-            newUser = Object.assign(Object.assign({}, newUser), { canCheckIn: false, waitingPosition: 1 });
-        }
+    if (isSeatAvailable && isNoUserInWaiting) {
+        newUser = Object.assign(Object.assign({}, newUser), { status: EnumStatus.SeatIn });
+        //   run a schedule
+        //   after setTimeout remove the user from the seated database
+        //  and send notification to the waited list party about check in
+        //  and send notification to the other waited list party about changed waiting list
+        //  and send notification to the person about thank you for coming
     }
     else {
         const waitingListLastPosition = (yield Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
-        newUser = Object.assign(Object.assign({}, newUser), { canCheckIn: false, waitingPosition: waitingListLastPosition + 1 });
+        newUser = Object.assign(Object.assign({}, newUser), { status: EnumStatus.InWaitingList, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 });
     }
     const { waitingPosition } = newUser, userWithoutPosition = __rest(newUser, ["waitingPosition"]);
-    const newEntry = new Waitlist(Object.assign({}, userWithoutPosition));
-    yield newEntry.save();
+    const newUserEntry = new Waitlist(Object.assign({}, userWithoutPosition));
+    yield newUserEntry.save();
     res.status(201).json({ message: "Item has been added", user: newUser });
 }));
 app.post("/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -135,7 +150,22 @@ app.post("/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* (
 app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.params;
     try {
-        const user = yield Waitlist.findOne({ name });
+        const allUsersInfo = yield Waitlist.find();
+        let user = {};
+        let waitingPosition = 0;
+        for (let index = 0; index < allUsersInfo.length; index++) {
+            if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
+                waitingPosition = waitingPosition + 1;
+            }
+            if (allUsersInfo[index].name === name) {
+                user = allUsersInfo[index].toObject();
+                console.log(user);
+                if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
+                    user = Object.assign(Object.assign({}, user), { waitingPosition: waitingPosition });
+                }
+                break;
+            }
+        }
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
