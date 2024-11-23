@@ -25,7 +25,6 @@ if (!mongoUri) {
   throw new Error("MONGO_URI is not defined in the environment variables");
 }
 
-// MongoDB connection setup
 mongoose
   .connect(mongoUri)
   .then(() => console.log("Connected to MongoDB"))
@@ -38,8 +37,6 @@ enum EnumStatus {
   ServiceCompleted = "Service Completed",
 }
 
-// Define the waitlist schema
-
 type User = {
   name?: string;
   partySize?: number;
@@ -48,27 +45,25 @@ type User = {
   canCheckIn?: boolean;
   waitingPosition?: number;
 };
-const waitlistSchema = new mongoose.Schema({
+const usersListSchema = new mongoose.Schema({
   name: String,
   partySize: Number,
   status: { type: String, enum: Object.values(EnumStatus), default: EnumStatus.None },
   joinedAt: { type: Date, default: Date.now },
   canCheckIn: { type: Boolean, default: false },
 });
-const Waitlist = mongoose.model("Waitlist", waitlistSchema);
+const UsersList = mongoose.model("UsersList", usersListSchema);
 
 let totalSeats = 10;
 
-// WebSocket connection handling
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  // Check seat availability
   socket.on("check-seats", async (name: string) => {
     console.log(`Checking seats for name: ${name}`);
-    const fillUpSeats = (await Waitlist.find({ status: EnumStatus.SeatIn })).length ?? 0;
+    const fillUpSeats = (await UsersList.find({ status: EnumStatus.SeatIn })).length ?? 0;
     const availableSeats = totalSeats - fillUpSeats;
-    const firstWaitingPartyInfo = (await Waitlist.find({ status: EnumStatus.InWaitingList }))[0];
+    const firstWaitingPartyInfo = (await UsersList.find({ status: EnumStatus.InWaitingList }))[0];
     if (name === (firstWaitingPartyInfo?.name ?? "")) {
       if ((firstWaitingPartyInfo.partySize ?? 0) <= availableSeats) {
         socket.emit("seats-available", {
@@ -79,21 +74,20 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Cleanup on disconnect
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
     // clearInterval(interval);
   });
 });
 
-// API Routes
+
 app.post("/api/join", async (req: Request, res: Response) => {
   const totalSeatsCount = 10;
   const { name, partySize }: { name: string; partySize: number } = req.body;
   let bookedSeatsCount = 0;
   let canCheckInSeatsCount = 0;
   let usersInWaitingListCount = 0;
-  const allUserInfo = await Waitlist.find();
+  const allUserInfo = await UsersList.find();
 
   for (let index = 0; index < allUserInfo.length; index++) {
     if (allUserInfo[index].status === EnumStatus.SeatIn) {
@@ -122,18 +116,18 @@ app.post("/api/join", async (req: Request, res: Response) => {
     //  and send notification to the other waited list party about changed waiting list
     //  and send notification to the person about thank you for coming
   } else {
-    const waitingListLastPosition = (await Waitlist.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
+    const waitingListLastPosition = (await UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
     newUser = { ...newUser, status: EnumStatus.InWaitingList, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 };
   }
   const { waitingPosition, ...userWithoutPosition } = newUser;
-  const newUserEntry = new Waitlist({ ...userWithoutPosition });
+  const newUserEntry = new UsersList({ ...userWithoutPosition });
   await newUserEntry.save();
   res.status(201).json({ message: "New user has been added", user: newUser });
 });
 
 app.post("/api/checkin", async (req: Request, res: Response) => {
   const { name } = req.body;
-  const user = await Waitlist.findOne({ name: name });
+  const user = await UsersList.findOne({ name: name });
   if (user) {
     user.status = EnumStatus.SeatIn;
     await user.save();
@@ -152,7 +146,7 @@ app.get("/api/user/:name", async (req: Request<{ name: string }>, res: Response)
   const { name } = req.params;
 
   try {
-    const allUsersInfo = await Waitlist.find();
+    const allUsersInfo = await UsersList.find();
     let user: User = {};
     let waitingPosition = 0;
 
@@ -180,7 +174,6 @@ app.get("/api/user/:name", async (req: Request<{ name: string }>, res: Response)
   }
 });
 
-// Start the server
 const PORT = 5000;
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
