@@ -128,18 +128,23 @@ app.post("/api/join", async (req: Request, res: Response) => {
   const { waitingPosition, ...userWithoutPosition } = newUser;
   const newUserEntry = new Waitlist({ ...userWithoutPosition });
   await newUserEntry.save();
-  res.status(201).json({ message: "Item has been added", user: newUser });
+  res.status(201).json({ message: "New user has been added", user: newUser });
 });
 
-app.post("/checkin", async (req: Request, res: Response) => {
-  const { id } = req.body;
-  const party = await Waitlist.findById(id);
-  if (party) {
-    // party.checkedIn = true;
-    await party.save();
-    res.status(200).send("Checked in");
+app.post("/api/checkin", async (req: Request, res: Response) => {
+  const { name } = req.body;
+  const user = await Waitlist.findOne({ name: name });
+  if (user) {
+    user.status = EnumStatus.SeatIn;
+    await user.save();
+    res.status(200).send({ message: "User has checked in", user: user });
+    // and run a schedule.
+    // after setTimeout remove the user from the seated database
+    // and send notification to the waited list party about check in
+    // and send notification to the other waited list party about changed waiting list
+    // and send notification to the person about thank you for coming
   } else {
-    res.status(404).send("Party not found");
+    res.status(404).send({ message: "User not found" });
   }
 });
 

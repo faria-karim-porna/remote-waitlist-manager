@@ -65,6 +65,20 @@ const App: React.FC = () => {
       });
   };
 
+  const handleCheckIn = (name: string) => {
+    fetch("http://localhost:5000/api/checkin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+        }
+      });
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <h1>Restaurant Waitlist</h1>
@@ -74,8 +88,8 @@ const App: React.FC = () => {
           <input type="number" min="1" placeholder="Party size" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} />
           <button onClick={() => handleJoin()}>Submit</button>
         </>
-      ) : user.canCheckIn ? (
-        <button onClick={() => handleJoin()}>Check In</button>
+      ) : user.status === EnumStatus.InWaitingList && user.canCheckIn ? (
+        <button onClick={() => handleCheckIn(user.name ?? "")}>Check In</button>
       ) : user.status === EnumStatus.InWaitingList ? (
         <div>Your waiting position is {user?.waitingPosition}</div>
       ) : user.status === EnumStatus.SeatIn ? (

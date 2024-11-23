@@ -133,18 +133,23 @@ app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const { waitingPosition } = newUser, userWithoutPosition = __rest(newUser, ["waitingPosition"]);
     const newUserEntry = new Waitlist(Object.assign({}, userWithoutPosition));
     yield newUserEntry.save();
-    res.status(201).json({ message: "Item has been added", user: newUser });
+    res.status(201).json({ message: "New user has been added", user: newUser });
 }));
-app.post("/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.body;
-    const party = yield Waitlist.findById(id);
-    if (party) {
-        // party.checkedIn = true;
-        yield party.save();
-        res.status(200).send("Checked in");
+app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.body;
+    const user = yield Waitlist.findOne({ name: name });
+    if (user) {
+        user.status = EnumStatus.SeatIn;
+        yield user.save();
+        res.status(200).send({ message: "User has checked in", user: user });
+        // and run a schedule.
+        // after setTimeout remove the user from the seated database
+        // and send notification to the waited list party about check in
+        // and send notification to the other waited list party about changed waiting list
+        // and send notification to the person about thank you for coming
     }
     else {
-        res.status(404).send("Party not found");
+        res.status(404).send({ message: "User not found" });
     }
 }));
 app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
