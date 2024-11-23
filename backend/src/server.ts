@@ -3,6 +3,7 @@ import http from "http";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { Server } from "socket.io";
 
 dotenv.config();
 
@@ -21,6 +22,40 @@ mongoose
   .connect(mongoUri)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log("Error connecting to MongoDB:", err));
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // Replace with your React app's URL
+    methods: ["GET", "POST"],
+  },
+});
+
+interface NotificationData {
+  name: string;
+  message: string;
+}
+
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  socket.on("join", (name: string) => {
+    console.log(`${socket.id} joined ${name}`);
+    socket.join(name);
+  });
+
+  // Handle notifications to a specific room
+  socket.on("notify", (data: NotificationData) => {
+    const { name, message } = data;
+    console.log(`Sending message to ${name}: ${message}`);
+    setTimeout(() => {
+      io.to("Faria KP").emit("notification", message);
+    }, 5000);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
 
 enum EnumStatus {
   None = "None",
@@ -45,7 +80,6 @@ const usersListSchema = new mongoose.Schema({
   canCheckIn: { type: Boolean, default: false },
 });
 const UsersList = mongoose.model("UsersList", usersListSchema);
-
 
 app.post("/api/join", async (req: Request, res: Response) => {
   const totalSeatsCount = 10;

@@ -28,6 +28,7 @@ const http_1 = __importDefault(require("http"));
 const cors_1 = __importDefault(require("cors"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const socket_io_1 = require("socket.io");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
@@ -41,6 +42,30 @@ mongoose_1.default
     .connect(mongoUri)
     .then(() => console.log("Connected to MongoDB"))
     .catch((err) => console.log("Error connecting to MongoDB:", err));
+const io = new socket_io_1.Server(server, {
+    cors: {
+        origin: "http://localhost:5173", // Replace with your React app's URL
+        methods: ["GET", "POST"],
+    },
+});
+io.on("connection", (socket) => {
+    console.log(`User connected: ${socket.id}`);
+    socket.on("join", (name) => {
+        console.log(`${socket.id} joined ${name}`);
+        socket.join(name);
+    });
+    // Handle notifications to a specific room
+    socket.on("notify", (data) => {
+        const { name, message } = data;
+        console.log(`Sending message to ${name}: ${message}`);
+        setTimeout(() => {
+            io.to("Faria KP").emit("notification", message);
+        }, 5000);
+    });
+    socket.on("disconnect", () => {
+        console.log(`User disconnected: ${socket.id}`);
+    });
+});
 var EnumStatus;
 (function (EnumStatus) {
     EnumStatus["None"] = "None";

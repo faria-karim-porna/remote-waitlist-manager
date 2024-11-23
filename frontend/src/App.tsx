@@ -1,5 +1,11 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
+
+// Define the type for a notification
+// interface Notification {
+//   message: string; // Adjust this based on the structure of notifications
+// }
 
 enum EnumStatus {
   None = "None",
@@ -27,6 +33,9 @@ const App: React.FC = () => {
   const [name, setName] = useState("");
   const [partySize, setPartySize] = useState(1);
   const [user, setUser] = useState<User>({});
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isSocketReady, setIsSocketReady] = useState(false);
+
   const fetchUser = async (userName: string) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
@@ -40,10 +49,28 @@ const App: React.FC = () => {
   useEffect(() => {
     const userName = getUserFromLocalStorage();
     fetchUser(userName);
+    const newSocket = io("http://localhost:5000"); // Replace with your server's URL
+    setSocket(newSocket);
+
+    // Listen for notifications
+    newSocket.on("notification", (data: string) => {
+      setIsSocketReady(true);
+      console.log("data", data);
+      // setNotifications((prev) => [...prev, data]);
+    });
+
+    return () => {
+      if (isSocketReady) {
+        setIsSocketReady(false);
+        newSocket.close();
+      }
+    };
   }, []);
 
   useEffect(() => {
-    // join the socket room using username
+    if (user.name && socket) {
+      socket.emit("join", user.name); // Join the room with the specified name
+    }
   }, [user]);
 
   const handleJoin = () => {
