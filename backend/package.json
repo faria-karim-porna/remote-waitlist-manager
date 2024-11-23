@@ -11,6 +11,7 @@
     "express": "^4.21.1",
     "mongodb": "^6.10.0",
     "mongoose": "^8.8.2",
+    "socket.io": "^4.8.1",
     "typescript": "^5.6.3"
   },
   "name": "backend",
@@ -29,7 +30,9 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/socket.io": "^3.0.2",
     "concurrently": "^9.1.0",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2"
   }
 }
