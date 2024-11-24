@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 
 enum EnumStatus {
   None = "None",
@@ -24,13 +25,19 @@ const App: React.FC = () => {
     const storedUser = localStorage.getItem("user") ?? "";
     return storedUser;
   };
+
+  const clearLocalStorage = () => {
+    localStorage.clear();
+  };
+
   const [name, setName] = useState("");
   const [partySize, setPartySize] = useState(1);
   const [user, setUser] = useState<User>({});
+  const [isSocketReady, setIsSocketReady] = useState(false);
+
   const fetchUser = async (userName: string) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
-      console.log(response.data.user);
       setUser(response.data.user);
     } catch {
       setUser({});
@@ -43,7 +50,24 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // join the socket room using username
+    const newSocket = io("http://localhost:5000");
+    if (user.name) {
+      newSocket.on("notification", (data: User) => {
+        setIsSocketReady(true);
+        setUser({ ...user, ...data });
+      });
+
+      if (newSocket) {
+        newSocket.emit("join", user.name);
+      }
+    }
+
+    return () => {
+      if (isSocketReady) {
+        setIsSocketReady(false);
+        newSocket.close();
+      }
+    };
   }, [user]);
 
   const handleJoin = () => {
@@ -77,10 +101,24 @@ const App: React.FC = () => {
       });
   };
 
+  const handleJoinAgain = (name: string) => {
+    fetch("http://localhost:5000/api/deleteUser", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.message) {
+          clearLocalStorage();
+          setUser({});
+        }
+      });
+  };
   return (
     <div style={{ padding: "20px" }}>
       <h1>Restaurant Waitlist</h1>
-      {!getUserFromLocalStorage() ? (
+      {!user.name ? (
         <>
           <input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
           <input type="number" min="1" placeholder="Party size" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} />
@@ -93,7 +131,10 @@ const App: React.FC = () => {
       ) : user.status === EnumStatus.SeatIn ? (
         <div>Enjoy Your Service</div>
       ) : user.status === EnumStatus.ServiceCompleted ? (
-        <div>Thank You For Coming</div>
+        <div>
+          <div>Thank You For Coming</div>
+          <button onClick={() => handleJoinAgain(user.name ?? "")}>Join Again</button>
+        </div>
       ) : null}
     </div>
   );
