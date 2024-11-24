@@ -89,6 +89,53 @@ const UsersList = mongoose.model("UsersList", usersListSchema);
 
 // const SeatsCount = mongoose.model("SeatsCount", seatsCountSchema);
 
+const runServiceSchedule = (name: string, partySize: number) => {
+  const totalSeatsCount = 10;
+  const serviceTimePerPersonInMilliSec = 3000;
+  setTimeout(async () => {
+    const user = await UsersList.findOne({ name: name });
+    if (user) {
+      user.status = EnumStatus.ServiceCompleted;
+      await user.save();
+      io.to(name).emit("notification", { status: EnumStatus.ServiceCompleted });
+      const allUsers = await UsersList.find();
+      let currentBookedSeatsCount = 0;
+      let currentCanCheckInSeatsCount = 0;
+      let userWaitingPosition = 0;
+      for (let index = 0; index < allUsers.length; index++) {
+        if (allUsers[index].status === EnumStatus.SeatIn) {
+          currentBookedSeatsCount = currentBookedSeatsCount + (allUsers[index]?.partySize ?? 0);
+        }
+        if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
+          currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + (allUsers[index]?.partySize ?? 0);
+        }
+      }
+      let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
+
+      for (let index = 0; index < allUsers.length; index++) {
+        if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+          remainingSeatsCount = remainingSeatsCount - (allUsers[index].partySize ?? 0);
+          if (remainingSeatsCount >= 0) {
+            allUsers[index].canCheckIn = true;
+            await allUsers[index].save();
+            io.to(allUsers[index].name ?? "").emit("notification", { canCheckIn: true });
+          } else {
+            break;
+          }
+        }
+      }
+      for (let index = 0; index < allUsers.length; index++) {
+        if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+          userWaitingPosition = userWaitingPosition + 1;
+          if (allUsers[index] && allUsers[index].name) {
+            io.to(allUsers[index].name ?? "").emit("notification", { waitingPosition: userWaitingPosition });
+          }
+        }
+      }
+    }
+  }, serviceTimePerPersonInMilliSec * partySize);
+};
+
 app.post("/api/join", async (req: Request, res: Response) => {
   const totalSeatsCount = 10;
   const { name, partySize }: { name: string; partySize: number } = req.body;
@@ -118,52 +165,10 @@ app.post("/api/join", async (req: Request, res: Response) => {
   };
   if (isSeatAvailable && isNoUserInWaiting) {
     newUser = { ...newUser, status: EnumStatus.SeatIn };
-    const serviceTimePerPersonInMilliSec = 3000;
     const newUserEntry = new UsersList({ ...newUser });
     await newUserEntry.save();
     res.status(201).json({ message: "New user has been added", user: newUser });
-    setTimeout(async () => {
-      const user = await UsersList.findOne({ name: name });
-      if (user) {
-        user.status = EnumStatus.ServiceCompleted;
-        await user.save();
-        io.to(name).emit("notification", { status: EnumStatus.ServiceCompleted });
-        const allUsers = await UsersList.find();
-        let currentBookedSeatsCount = 0;
-        let currentCanCheckInSeatsCount = 0;
-        let userWaitingPosition = 0;
-        for (let index = 0; index < allUsers.length; index++) {
-          if (allUsers[index].status === EnumStatus.SeatIn) {
-            currentBookedSeatsCount = currentBookedSeatsCount + (allUsers[index]?.partySize ?? 0);
-          }
-          if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
-            currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + (allUsers[index]?.partySize ?? 0);
-          }
-        }
-        let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
-
-        for (let index = 0; index < allUsers.length; index++) {
-          if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
-            remainingSeatsCount = remainingSeatsCount - (allUsers[index].partySize ?? 0);
-            if (remainingSeatsCount >= 0) {
-              allUsers[index].canCheckIn = true;
-              await allUsers[index].save();
-              io.to(allUsers[index].name ?? "").emit("notification", { canCheckIn: true });
-            } else {
-              break;
-            }
-          }
-        }
-        for (let index = 0; index < allUsers.length; index++) {
-          if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
-            userWaitingPosition = userWaitingPosition + 1;
-            if (allUsers[index] && allUsers[index].name) {
-              io.to(allUsers[index].name ?? "").emit("notification", { waitingPosition: userWaitingPosition });
-            }
-          }
-        }
-      }
-    }, serviceTimePerPersonInMilliSec * partySize);
+    runServiceSchedule(name, partySize);
   } else {
     const waitingListLastPosition = (await UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
     newUser = { ...newUser, status: EnumStatus.InWaitingList, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 };
@@ -181,11 +186,7 @@ app.post("/api/checkin", async (req: Request, res: Response) => {
     user.status = EnumStatus.SeatIn;
     await user.save();
     res.status(200).send({ message: "User has checked in", user: user });
-    // and run a schedule.
-    // after setTimeout remove the user from the seated database
-    // and send notification to the waited list party about check in
-    // and send notification to the other waited list party about changed waiting list
-    // and send notification to the person about thank you for coming
+    runServiceSchedule(name, user.partySize ?? 0);
   } else {
     res.status(404).send({ message: "User not found" });
   }
