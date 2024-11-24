@@ -216,6 +216,16 @@ app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, funct
         res.status(500).json({ message: "Server error", error: error });
     }
 }));
+app.delete("/api/deleteUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.body;
+    const user = yield UsersList.deleteOne({ name: name });
+    if (user) {
+        res.status(200).send({ message: "User has been deleted" });
+    }
+    else {
+        res.status(404).send({ message: "User not found" });
+    }
+}));
 const PORT = 5000;
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

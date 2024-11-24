@@ -223,6 +223,16 @@ app.get("/api/user/:name", async (req: Request<{ name: string }>, res: Response)
   }
 });
 
+app.delete("/api/deleteUser", async (req: Request, res: Response) => {
+  const { name } = req.body;
+  const user = await UsersList.deleteOne({ name: name });
+  if (user) {
+    res.status(200).send({ message: "User has been deleted" });
+  } else {
+    res.status(404).send({ message: "User not found" });
+  }
+});
+
 const PORT = 5000;
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
