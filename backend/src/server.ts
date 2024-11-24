@@ -97,35 +97,29 @@ enum EnumNotificationUser {
   StillInWaiting = "Still In Waiting",
 }
 
-const notificationService = async (
-  userType: EnumNotificationUser,
-  usersInWaiting: IUser[],
-  name?: string,
-  remainingSeatsCount?: number
-) => {
-  switch (userType) {
-    case EnumNotificationUser.Self:
-      io.to(name ?? "").emit("notification", { status: EnumStatus.ServiceCompleted });
-      break;
-    case EnumNotificationUser.CanCheckInNow:
-      for (let index = 0; index < usersInWaiting.length; index++) {
-        remainingSeatsCount = (remainingSeatsCount ?? 0) - (usersInWaiting[index].partySize ?? 0);
-        if (remainingSeatsCount >= 0) {
-          usersInWaiting[index].canCheckIn = true;
-          await usersInWaiting[index].save();
-          io.to(usersInWaiting[index].name ?? "").emit("notification", { canCheckIn: true });
-        } else {
-          break;
-        }
+const notificationService = async (allUsers: IUser[], name?: string, remainingSeatsCount?: number) => {
+  io.to(name ?? "").emit("notification", { status: EnumStatus.ServiceCompleted });
+  for (let index = 0; index < allUsers.length; index++) {
+    if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+      remainingSeatsCount = (remainingSeatsCount ?? 0) - (allUsers[index].partySize ?? 0);
+      if (remainingSeatsCount >= 0) {
+        allUsers[index].canCheckIn = true;
+        await allUsers[index].save();
+        io.to(allUsers[index].name ?? "").emit("notification", { canCheckIn: true });
+      } else {
+        break;
       }
-      break;
-    case EnumNotificationUser.StillInWaiting:
-      for (let index = 0; index < usersInWaiting.length; index++) {
-        io.to(usersInWaiting[index].name ?? "").emit("notification", { waitingPosition: index + 1 });
+    }
+  }
+
+  let userWaitingPosition = 0;
+  for (let index = 0; index < allUsers.length; index++) {
+    if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+      userWaitingPosition = userWaitingPosition + 1;
+      if (allUsers[index] && allUsers[index].name) {
+        io.to(allUsers[index].name ?? "").emit("notification", { waitingPosition: userWaitingPosition });
       }
-      break;
-    default:
-      break;
+    }
   }
 };
 
@@ -151,9 +145,7 @@ const runServiceSchedule = (name: string, partySize: number) => {
       }
       let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
       let usersInWaiting = await UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false });
-      notificationService(EnumNotificationUser.Self, usersInWaiting, name);
-      notificationService(EnumNotificationUser.CanCheckInNow, usersInWaiting);
-      notificationService(EnumNotificationUser.StillInWaiting, usersInWaiting, undefined, remainingSeatsCount);
+      notificationService(allUsers, name, remainingSeatsCount);
     }
   }, serviceTimePerPersonInMilliSec * partySize);
 };
