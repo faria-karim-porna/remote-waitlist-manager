@@ -25,7 +25,7 @@ mongoose
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Replace with your React app's URL
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
@@ -43,14 +43,14 @@ io.on("connection", (socket) => {
     socket.join(name);
   });
 
-  // Handle notifications to a specific room
-  socket.on("notify", (data: NotificationData) => {
-    const { name, message } = data;
-    console.log(`Sending message to ${name}: ${message}`);
-    setTimeout(() => {
-      io.to("Faria KP").emit("notification", message);
-    }, 5000);
-  });
+  // // Handle notifications to a specific room
+  // socket.on("notify", (data: NotificationData) => {
+  //   const { name, message } = data;
+  //   console.log(`Sending message to ${name}: ${message}`);
+  //   setTimeout(() => {
+  //     io.to("Faria KP").emit("notification", message);
+  //   }, 5000);
+  // });
 
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
@@ -79,7 +79,15 @@ const usersListSchema = new mongoose.Schema({
   joinedAt: { type: Date, default: Date.now },
   canCheckIn: { type: Boolean, default: false },
 });
+
 const UsersList = mongoose.model("UsersList", usersListSchema);
+
+// const seatsCountSchema = new mongoose.Schema({
+//   bookedSeats: { type: Number, default: 0 },
+//   inWaitingSeats: { type: Number, default: 0 },
+// });
+
+// const SeatsCount = mongoose.model("SeatsCount", seatsCountSchema);
 
 app.post("/api/join", async (req: Request, res: Response) => {
   const totalSeatsCount = 10;
@@ -110,19 +118,60 @@ app.post("/api/join", async (req: Request, res: Response) => {
   };
   if (isSeatAvailable && isNoUserInWaiting) {
     newUser = { ...newUser, status: EnumStatus.SeatIn };
-    //   run a schedule
-    //   after setTimeout remove the user from the seated database
-    //  and send notification to the waited list party about check in
-    //  and send notification to the other waited list party about changed waiting list
-    //  and send notification to the person about thank you for coming
+    const serviceTimePerPersonInMilliSec = 3000;
+    const newUserEntry = new UsersList({ ...newUser });
+    await newUserEntry.save();
+    res.status(201).json({ message: "New user has been added", user: newUser });
+    setTimeout(async () => {
+      const user = await UsersList.findOne({ name: name });
+      if (user) {
+        user.status = EnumStatus.ServiceCompleted;
+        await user.save();
+        io.to(name).emit("notification", { status: EnumStatus.ServiceCompleted });
+        const allUsers = await UsersList.find();
+        let currentBookedSeatsCount = 0;
+        let currentCanCheckInSeatsCount = 0;
+        let userWaitingPosition = 0;
+        for (let index = 0; index < allUsers.length; index++) {
+          if (allUsers[index].status === EnumStatus.SeatIn) {
+            currentBookedSeatsCount = currentBookedSeatsCount + (allUsers[index]?.partySize ?? 0);
+          }
+          if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
+            currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + (allUsers[index]?.partySize ?? 0);
+          }
+        }
+        let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
+
+        for (let index = 0; index < allUsers.length; index++) {
+          if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+            remainingSeatsCount = remainingSeatsCount - (allUsers[index].partySize ?? 0);
+            if (remainingSeatsCount >= 0) {
+              allUsers[index].canCheckIn = true;
+              await allUsers[index].save();
+              io.to(allUsers[index].name ?? "").emit("notification", { canCheckIn: true });
+            } else {
+              break;
+            }
+          }
+        }
+        for (let index = 0; index < allUsers.length; index++) {
+          if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+            userWaitingPosition = userWaitingPosition + 1;
+            if (allUsers[index] && allUsers[index].name) {
+              io.to(allUsers[index].name ?? "").emit("notification", { waitingPosition: userWaitingPosition });
+            }
+          }
+        }
+      }
+    }, serviceTimePerPersonInMilliSec * partySize);
   } else {
     const waitingListLastPosition = (await UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
     newUser = { ...newUser, status: EnumStatus.InWaitingList, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 };
+    const { waitingPosition, ...userWithoutPosition } = newUser;
+    const newUserEntry = new UsersList({ ...userWithoutPosition });
+    await newUserEntry.save();
+    res.status(201).json({ message: "New user has been added", user: newUser });
   }
-  const { waitingPosition, ...userWithoutPosition } = newUser;
-  const newUserEntry = new UsersList({ ...userWithoutPosition });
-  await newUserEntry.save();
-  res.status(201).json({ message: "New user has been added", user: newUser });
 });
 
 app.post("/api/checkin", async (req: Request, res: Response) => {
