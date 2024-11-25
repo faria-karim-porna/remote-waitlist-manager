@@ -7,13 +7,13 @@ import { Server } from "socket.io";
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const server = http.createServer(app);
 
 app.use(cors());
 app.use(express.json());
 
-const mongoUri: string | undefined = process.env.MONGO_URI;
+export const mongoUri: string | undefined = process.env.MONGO_URI;
 if (!mongoUri) {
   throw new Error("MONGO_URI is not defined in the environment variables");
 }
@@ -57,7 +57,7 @@ io.on("connection", (socket) => {
   });
 });
 
-enum EnumStatus {
+export enum EnumStatus {
   None = "None",
   SeatIn = "Seat In",
   InWaitingList = "In Waiting List",
@@ -80,7 +80,7 @@ const usersListSchema = new mongoose.Schema({
   canCheckIn: { type: Boolean, default: false },
 });
 
-const UsersList = mongoose.model("UsersList", usersListSchema);
+export const UsersList = mongoose.model("UsersList", usersListSchema);
 
 // const seatsCountSchema = new mongoose.Schema({
 //   bookedSeats: { type: Number, default: 0 },
