@@ -7,7 +7,7 @@ import { Server } from "socket.io";
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const server = http.createServer(app);
 
 app.use(cors());

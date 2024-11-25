@@ -23,6 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.app = void 0;
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const cors_1 = __importDefault(require("cors"));
@@ -30,10 +31,10 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const socket_io_1 = require("socket.io");
 dotenv_1.default.config();
-const app = (0, express_1.default)();
-const server = http_1.default.createServer(app);
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+exports.app = (0, express_1.default)();
+const server = http_1.default.createServer(exports.app);
+exports.app.use((0, cors_1.default)());
+exports.app.use(express_1.default.json());
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
     throw new Error("MONGO_URI is not defined in the environment variables");
@@ -133,7 +134,7 @@ const runServiceSchedule = (name, partySize) => {
         }
     }), serviceTimePerPersonInMilliSec * partySize);
 };
-app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
     const totalSeatsCount = 10;
     const { name, partySize } = req.body;
@@ -175,7 +176,7 @@ app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(201).json({ message: "New user has been added", user: newUser });
     }
 }));
-app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { name } = req.body;
     const user = yield UsersList.findOne({ name: name });
@@ -189,7 +190,7 @@ app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(404).send({ message: "User not found" });
     }
 }));
-app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.params;
     try {
         const allUsersInfo = yield UsersList.find();
@@ -216,7 +217,7 @@ app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, funct
         res.status(500).json({ message: "Server error", error: error });
     }
 }));
-app.delete("/api/deleteUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.delete("/api/deleteUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.body;
     const user = yield UsersList.deleteOne({ name: name });
     if (user) {
