@@ -93,16 +93,14 @@ const notificationService = (userType, allUsers, name, remainingSeatsCount) => _
             break;
         case EnumNotificationUser.CanCheckInNow:
             for (let index = 0; index < allUsers.length; index++) {
-                if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
-                    remainingSeatsCount = (remainingSeatsCount !== null && remainingSeatsCount !== void 0 ? remainingSeatsCount : 0) - ((_a = allUsers[index].partySize) !== null && _a !== void 0 ? _a : 0);
-                    if (remainingSeatsCount >= 0) {
-                        allUsers[index].canCheckIn = true;
-                        yield allUsers[index].save();
-                        io.to((_b = allUsers[index].name) !== null && _b !== void 0 ? _b : "").emit("notification", { canCheckIn: true });
-                    }
-                    else {
-                        break;
-                    }
+                remainingSeatsCount = (remainingSeatsCount !== null && remainingSeatsCount !== void 0 ? remainingSeatsCount : 0) - ((_a = allUsers[index].partySize) !== null && _a !== void 0 ? _a : 0);
+                if (remainingSeatsCount >= 0) {
+                    allUsers[index].canCheckIn = true;
+                    yield allUsers[index].save();
+                    io.to((_b = allUsers[index].name) !== null && _b !== void 0 ? _b : "").emit("notification", { canCheckIn: true });
+                }
+                else {
+                    break;
                 }
             }
             break;
@@ -111,9 +109,7 @@ const notificationService = (userType, allUsers, name, remainingSeatsCount) => _
             for (let index = 0; index < allUsers.length; index++) {
                 if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
                     userWaitingPosition = userWaitingPosition + 1;
-                    if (allUsers[index] && allUsers[index].name) {
-                        io.to((_c = allUsers[index].name) !== null && _c !== void 0 ? _c : "").emit("notification", { waitingPosition: userWaitingPosition });
-                    }
+                    io.to((_c = allUsers[index].name) !== null && _c !== void 0 ? _c : "").emit("notification", { waitingPosition: userWaitingPosition });
                 }
             }
             break;
