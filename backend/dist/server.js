@@ -139,26 +139,69 @@ const notificationService = (userType, allUsers, name, remainingSeatsCount) => {
             break;
     }
 };
+const calculateBookedSeatsCount = (allUsers) => {
+    var _a, _b;
+    let currentBookedSeatsCount = 0;
+    for (let index = 0; index < allUsers.length; index++) {
+        if (allUsers[index].status === EnumStatus.SeatIn) {
+            currentBookedSeatsCount = currentBookedSeatsCount + ((_b = (_a = allUsers[index]) === null || _a === void 0 ? void 0 : _a.partySize) !== null && _b !== void 0 ? _b : 0);
+        }
+    }
+    return currentBookedSeatsCount;
+};
+const calculateCanCheckInSeatsCount = (allUsers) => {
+    var _a, _b;
+    let currentCanCheckInSeatsCount = 0;
+    for (let index = 0; index < allUsers.length; index++) {
+        if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
+            currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + ((_b = (_a = allUsers[index]) === null || _a === void 0 ? void 0 : _a.partySize) !== null && _b !== void 0 ? _b : 0);
+        }
+    }
+    return currentCanCheckInSeatsCount;
+};
+const calculateUsersInWaitingListCount = (allUsers) => {
+    let usersInWaitingListCount = 0;
+    for (let index = 0; index < allUsers.length; index++) {
+        if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+            usersInWaitingListCount = usersInWaitingListCount + 1;
+        }
+    }
+    return usersInWaitingListCount;
+};
+var EnumCount;
+(function (EnumCount) {
+    EnumCount["BookedSeats"] = "Booked Seats";
+    EnumCount["CanCheckInSeats"] = "Can Check In Seats";
+    EnumCount["UsersInWaiting"] = "Users In Waiting";
+})(EnumCount || (EnumCount = {}));
+const calculateCount = (users, type) => {
+    let usersOrSeatsCount = 0;
+    switch (type) {
+        case EnumCount.BookedSeats:
+            usersOrSeatsCount = calculateBookedSeatsCount(users);
+            break;
+        case EnumCount.CanCheckInSeats:
+            usersOrSeatsCount = calculateCanCheckInSeatsCount(users);
+            break;
+        case EnumCount.UsersInWaiting:
+            usersOrSeatsCount = calculateUsersInWaitingListCount(users);
+            break;
+        default:
+            break;
+    }
+    return usersOrSeatsCount;
+};
 const runServiceSchedule = (name, partySize) => {
     const totalSeatsCount = 10;
     const serviceTimePerPersonInMilliSec = 3000;
     setTimeout(() => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
         const user = yield UsersList.findOne({ name: name });
         if (user) {
             user.status = EnumStatus.ServiceCompleted;
             yield user.save();
             const allUsers = yield UsersList.find();
-            let currentBookedSeatsCount = 0;
-            let currentCanCheckInSeatsCount = 0;
-            for (let index = 0; index < allUsers.length; index++) {
-                if (allUsers[index].status === EnumStatus.SeatIn) {
-                    currentBookedSeatsCount = currentBookedSeatsCount + ((_b = (_a = allUsers[index]) === null || _a === void 0 ? void 0 : _a.partySize) !== null && _b !== void 0 ? _b : 0);
-                }
-                if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
-                    currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + ((_d = (_c = allUsers[index]) === null || _c === void 0 ? void 0 : _c.partySize) !== null && _d !== void 0 ? _d : 0);
-                }
-            }
+            const currentBookedSeatsCount = calculateCount(allUsers, EnumCount.BookedSeats);
+            const currentCanCheckInSeatsCount = calculateCount(allUsers, EnumCount.CanCheckInSeats);
             let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
             const usersInWaiting = yield UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false });
             const usersCanCheckInNow = getUsersWhoCanCheckInNow(usersInWaiting, remainingSeatsCount);
@@ -173,32 +216,21 @@ const runServiceSchedule = (name, partySize) => {
     }), serviceTimePerPersonInMilliSec * partySize);
 };
 app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
     const totalSeatsCount = 10;
     const { name, partySize } = req.body;
-    let bookedSeatsCount = 0;
-    let canCheckInSeatsCount = 0;
-    let usersInWaitingListCount = 0;
     const allUserInfo = yield UsersList.find();
-    for (let index = 0; index < allUserInfo.length; index++) {
-        if (allUserInfo[index].status === EnumStatus.SeatIn) {
-            bookedSeatsCount = bookedSeatsCount + ((_b = (_a = allUserInfo[index]) === null || _a === void 0 ? void 0 : _a.partySize) !== null && _b !== void 0 ? _b : 0);
-        }
-        if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === true) {
-            canCheckInSeatsCount = canCheckInSeatsCount + ((_d = (_c = allUserInfo[index]) === null || _c === void 0 ? void 0 : _c.partySize) !== null && _d !== void 0 ? _d : 0);
-        }
-        if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === false) {
-            usersInWaitingListCount = usersInWaitingListCount + 1;
-        }
-    }
+    const bookedSeatsCount = calculateCount(allUserInfo, EnumCount.BookedSeats);
+    const canCheckInSeatsCount = calculateCount(allUserInfo, EnumCount.CanCheckInSeats);
+    const usersInWaitingListCount = calculateCount(allUserInfo, EnumCount.UsersInWaiting);
     const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
     const isSeatAvailable = partySize <= availableSeatsCount;
     const isNoUserInWaiting = usersInWaitingListCount === 0;
+    const canSeatIn = isSeatAvailable && isNoUserInWaiting;
     let newUser = {
         name: name,
         partySize: partySize,
     };
-    if (isSeatAvailable && isNoUserInWaiting) {
+    if (canSeatIn) {
         newUser = Object.assign(Object.assign({}, newUser), { status: EnumStatus.SeatIn });
         const newUserEntry = new UsersList(Object.assign({}, newUser));
         yield newUserEntry.save();

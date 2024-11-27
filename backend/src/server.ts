@@ -156,6 +156,60 @@ const notificationService = (userType: EnumNotificationUser, allUsers: IUser[], 
   }
 };
 
+const calculateBookedSeatsCount = (allUsers: IUser[]) => {
+  let currentBookedSeatsCount = 0;
+  for (let index = 0; index < allUsers.length; index++) {
+    if (allUsers[index].status === EnumStatus.SeatIn) {
+      currentBookedSeatsCount = currentBookedSeatsCount + (allUsers[index]?.partySize ?? 0);
+    }
+  }
+  return currentBookedSeatsCount;
+};
+
+const calculateCanCheckInSeatsCount = (allUsers: IUser[]) => {
+  let currentCanCheckInSeatsCount = 0;
+  for (let index = 0; index < allUsers.length; index++) {
+    if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
+      currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + (allUsers[index]?.partySize ?? 0);
+    }
+  }
+  return currentCanCheckInSeatsCount;
+};
+
+const calculateUsersInWaitingListCount = (allUsers: IUser[]) => {
+  let usersInWaitingListCount = 0;
+  for (let index = 0; index < allUsers.length; index++) {
+    if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
+      usersInWaitingListCount = usersInWaitingListCount + 1;
+    }
+  }
+  return usersInWaitingListCount;
+};
+
+enum EnumCount {
+  BookedSeats = "Booked Seats",
+  CanCheckInSeats = "Can Check In Seats",
+  UsersInWaiting = "Users In Waiting",
+}
+
+const calculateCount = (users: IUser[], type: EnumCount) => {
+  let usersOrSeatsCount = 0;
+  switch (type) {
+    case EnumCount.BookedSeats:
+      usersOrSeatsCount = calculateBookedSeatsCount(users);
+      break;
+    case EnumCount.CanCheckInSeats:
+      usersOrSeatsCount = calculateCanCheckInSeatsCount(users);
+      break;
+    case EnumCount.UsersInWaiting:
+      usersOrSeatsCount = calculateUsersInWaitingListCount(users);
+      break;
+    default:
+      break;
+  }
+  return usersOrSeatsCount;
+};
+
 const runServiceSchedule = (name: string, partySize: number) => {
   const totalSeatsCount = 10;
   const serviceTimePerPersonInMilliSec = 3000;
@@ -165,17 +219,8 @@ const runServiceSchedule = (name: string, partySize: number) => {
       user.status = EnumStatus.ServiceCompleted;
       await user.save();
       const allUsers = await UsersList.find();
-      let currentBookedSeatsCount = 0;
-      let currentCanCheckInSeatsCount = 0;
-
-      for (let index = 0; index < allUsers.length; index++) {
-        if (allUsers[index].status === EnumStatus.SeatIn) {
-          currentBookedSeatsCount = currentBookedSeatsCount + (allUsers[index]?.partySize ?? 0);
-        }
-        if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
-          currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + (allUsers[index]?.partySize ?? 0);
-        }
-      }
+      const currentBookedSeatsCount = calculateCount(allUsers, EnumCount.BookedSeats);
+      const currentCanCheckInSeatsCount = calculateCount(allUsers, EnumCount.CanCheckInSeats);
       let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
       const usersInWaiting = await UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false });
       const usersCanCheckInNow = getUsersWhoCanCheckInNow(usersInWaiting, remainingSeatsCount);
@@ -193,31 +238,22 @@ const runServiceSchedule = (name: string, partySize: number) => {
 app.post("/api/join", async (req: Request, res: Response) => {
   const totalSeatsCount = 10;
   const { name, partySize }: { name: string; partySize: number } = req.body;
-  let bookedSeatsCount = 0;
-  let canCheckInSeatsCount = 0;
-  let usersInWaitingListCount = 0;
+
   const allUserInfo = await UsersList.find();
 
-  for (let index = 0; index < allUserInfo.length; index++) {
-    if (allUserInfo[index].status === EnumStatus.SeatIn) {
-      bookedSeatsCount = bookedSeatsCount + (allUserInfo[index]?.partySize ?? 0);
-    }
-    if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === true) {
-      canCheckInSeatsCount = canCheckInSeatsCount + (allUserInfo[index]?.partySize ?? 0);
-    }
-    if (allUserInfo[index].status === EnumStatus.InWaitingList && allUserInfo[index].canCheckIn === false) {
-      usersInWaitingListCount = usersInWaitingListCount + 1;
-    }
-  }
+  const bookedSeatsCount = calculateCount(allUserInfo, EnumCount.BookedSeats);
+  const canCheckInSeatsCount = calculateCount(allUserInfo, EnumCount.CanCheckInSeats);
+  const usersInWaitingListCount = calculateCount(allUserInfo, EnumCount.UsersInWaiting);
 
   const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
   const isSeatAvailable = partySize <= availableSeatsCount;
   const isNoUserInWaiting = usersInWaitingListCount === 0;
+  const canSeatIn = isSeatAvailable && isNoUserInWaiting;
   let newUser: User = {
     name: name,
     partySize: partySize,
   };
-  if (isSeatAvailable && isNoUserInWaiting) {
+  if (canSeatIn) {
     newUser = { ...newUser, status: EnumStatus.SeatIn };
     const newUserEntry = new UsersList({ ...newUser });
     await newUserEntry.save();
