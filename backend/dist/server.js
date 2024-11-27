@@ -85,20 +85,64 @@ var EnumNotificationUser;
     EnumNotificationUser["CanCheckInNow"] = "Can Check In Now";
     EnumNotificationUser["StillInWaiting"] = "Still In Waiting";
 })(EnumNotificationUser || (EnumNotificationUser = {}));
-const getUsersWhoCanCheckInNow = (users, remainingSeatsCount) => {
+class Notification {
+    constructor() {
+        this.observers = [];
+    }
+    attach(observer) {
+        this.observers.push(observer);
+    }
+    detach(observer) {
+        const index = this.observers.indexOf(observer);
+        if (index !== -1) {
+            this.observers.splice(index, 1);
+        }
+    }
+    detachAll() {
+        this.observers = [];
+    }
+    notify(data, func) {
+        if (data) {
+            this.observers.forEach((observer) => observer.update(data));
+        }
+        else if (func) {
+            this.observers.forEach((observer) => {
+                observer.update(undefined, () => func === null || func === void 0 ? void 0 : func(observer === null || observer === void 0 ? void 0 : observer.getObserver));
+            });
+        }
+    }
+}
+// Concrete Observer
+class UsersObserver {
+    constructor(user) {
+        this.user = user;
+    }
+    get getObserver() {
+        return this.user;
+    }
+    // React to updates from the subject
+    update(data, func) {
+        var _a;
+        if (data) {
+            sendNotification((_a = this.user.name) !== null && _a !== void 0 ? _a : "", data);
+        }
+        else {
+            func === null || func === void 0 ? void 0 : func();
+        }
+    }
+}
+const addObserversWhoCanCheckInNow = (users, notification, remainingSeatsCount) => {
     var _a;
-    const usersCanCheckInNow = [];
     for (let index = 0; index < users.length; index++) {
         remainingSeatsCount = (remainingSeatsCount !== null && remainingSeatsCount !== void 0 ? remainingSeatsCount : 0) - ((_a = users[index].partySize) !== null && _a !== void 0 ? _a : 0);
         if (remainingSeatsCount >= 0) {
-            users[index].canCheckIn = true;
-            usersCanCheckInNow.push(users[index]);
+            const observer = new UsersObserver(users[index]);
+            notification.attach(observer);
         }
         else {
             break;
         }
     }
-    return usersCanCheckInNow;
 };
 const getUsersWhoStillInWaiting = (users) => {
     const usersStillInWaiting = [];
@@ -204,14 +248,32 @@ const runServiceSchedule = (name, partySize) => {
             const currentCanCheckInSeatsCount = calculateCount(allUsers, EnumCount.CanCheckInSeats);
             let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
             const usersInWaiting = yield UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false });
-            const usersCanCheckInNow = getUsersWhoCanCheckInNow(usersInWaiting, remainingSeatsCount);
+            const notification = new Notification();
+            const observer = new UsersObserver(user);
+            notification.attach(observer);
+            notification.notify({ status: EnumStatus.ServiceCompleted });
+            notification.detachAll();
+            addObserversWhoCanCheckInNow(usersInWaiting, notification, remainingSeatsCount);
+            const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
+                user.canCheckIn = true;
+                console.log("user", user);
+                yield user.save();
+            });
+            notification.notify(undefined, updateCanCheckIn);
+            notification.notify({ canCheckIn: true });
             const usersStillInWaiting = getUsersWhoStillInWaiting(usersInWaiting);
-            for (let index = 0; index < usersCanCheckInNow.length; index++) {
-                yield usersCanCheckInNow[index].save();
-            }
-            notificationService(EnumNotificationUser.Self, usersInWaiting, name, remainingSeatsCount);
-            notificationService(EnumNotificationUser.CanCheckInNow, usersCanCheckInNow, name, remainingSeatsCount);
-            notificationService(EnumNotificationUser.StillInWaiting, usersStillInWaiting, name, remainingSeatsCount);
+            // Usage Example
+            // const observer2 = new UsersObserver("Observer 2");
+            // notification.attach(observer2);
+            // // Notify observers with some data
+            // notification.notify({ message: "Hello Observers!" });
+            // // Detach one observer
+            // notification.detach(observer1);
+            // // Notify remaining observers
+            // notification.notify({ message: "Second Update!" });
+            // notificationService(EnumNotificationUser.Self, usersInWaiting, name, remainingSeatsCount);
+            // notificationService(EnumNotificationUser.CanCheckInNow, usersCanCheckInNow, name, remainingSeatsCount);
+            // notificationService(EnumNotificationUser.StillInWaiting, usersStillInWaiting, name, remainingSeatsCount);
         }
     }), serviceTimePerPersonInMilliSec * partySize);
 };
