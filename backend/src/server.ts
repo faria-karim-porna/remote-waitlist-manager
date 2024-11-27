@@ -122,20 +122,26 @@ const getUsersWhoStillInWaiting = (users: IUser[]) => {
   return usersStillInWaiting;
 };
 
+const sendNotification = (name: string, data: Partial<IUser>) => {
+  io.to(name ?? "").emit("notification", data);
+};
+
 const notificationService = async (userType: EnumNotificationUser, allUsers: IUser[], name?: string, remainingSeatsCount?: number) => {
   switch (userType) {
     case EnumNotificationUser.Self:
-      io.to(name ?? "").emit("notification", { status: EnumStatus.ServiceCompleted });
+      sendNotification(name ?? "", { status: EnumStatus.ServiceCompleted });
       break;
     case EnumNotificationUser.CanCheckInNow:
       for (let index = 0; index < allUsers.length; index++) {
+        const name = allUsers[index].name;
         await allUsers[index].save();
-        io.to(allUsers[index].name ?? "").emit("notification", { canCheckIn: true });
+        sendNotification(name ?? "", { canCheckIn: true });
       }
       break;
     case EnumNotificationUser.StillInWaiting:
       for (let index = 0; index < allUsers.length; index++) {
-        io.to(allUsers[index].name ?? "").emit("notification", { waitingPosition: index + 1 });
+        const name = allUsers[index].name;
+        sendNotification(name ?? "", { waitingPosition: index + 1 });
       }
       break;
     default:

@@ -109,21 +109,25 @@ const getUsersWhoStillInWaiting = (users) => {
     }
     return usersStillInWaiting;
 };
+const sendNotification = (name, data) => {
+    io.to(name !== null && name !== void 0 ? name : "").emit("notification", data);
+};
 const notificationService = (userType, allUsers, name, remainingSeatsCount) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     switch (userType) {
         case EnumNotificationUser.Self:
-            io.to(name !== null && name !== void 0 ? name : "").emit("notification", { status: EnumStatus.ServiceCompleted });
+            sendNotification(name !== null && name !== void 0 ? name : "", { status: EnumStatus.ServiceCompleted });
             break;
         case EnumNotificationUser.CanCheckInNow:
             for (let index = 0; index < allUsers.length; index++) {
+                const name = allUsers[index].name;
                 yield allUsers[index].save();
-                io.to((_a = allUsers[index].name) !== null && _a !== void 0 ? _a : "").emit("notification", { canCheckIn: true });
+                sendNotification(name !== null && name !== void 0 ? name : "", { canCheckIn: true });
             }
             break;
         case EnumNotificationUser.StillInWaiting:
             for (let index = 0; index < allUsers.length; index++) {
-                io.to((_b = allUsers[index].name) !== null && _b !== void 0 ? _b : "").emit("notification", { waitingPosition: index + 1 });
+                const name = allUsers[index].name;
+                sendNotification(name !== null && name !== void 0 ? name : "", { waitingPosition: index + 1 });
             }
             break;
         default:
