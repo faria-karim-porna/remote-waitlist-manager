@@ -126,7 +126,15 @@ const sendNotification = (name: string, data: Partial<IUser>) => {
   io.to(name ?? "").emit("notification", data);
 };
 
-const notificationService = async (userType: EnumNotificationUser, allUsers: IUser[], name?: string, remainingSeatsCount?: number) => {
+const addWaitingPositionData = (users: IUser[]) => {
+  for (let index = 0; index < users.length; index++) {
+    users[index].waitingPosition = index + 1;
+  }
+
+  return users;
+};
+
+const notificationService = (userType: EnumNotificationUser, allUsers: IUser[], name?: string, remainingSeatsCount?: number) => {
   switch (userType) {
     case EnumNotificationUser.Self:
       sendNotification(name ?? "", { status: EnumStatus.ServiceCompleted });
@@ -134,7 +142,6 @@ const notificationService = async (userType: EnumNotificationUser, allUsers: IUs
     case EnumNotificationUser.CanCheckInNow:
       for (let index = 0; index < allUsers.length; index++) {
         const name = allUsers[index].name;
-        await allUsers[index].save();
         sendNotification(name ?? "", { canCheckIn: true });
       }
       break;
@@ -173,6 +180,9 @@ const runServiceSchedule = (name: string, partySize: number) => {
       const usersInWaiting = await UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false });
       const usersCanCheckInNow = getUsersWhoCanCheckInNow(usersInWaiting, remainingSeatsCount);
       const usersStillInWaiting = getUsersWhoStillInWaiting(usersInWaiting);
+      for (let index = 0; index < usersCanCheckInNow.length; index++) {
+        await usersCanCheckInNow[index].save();
+      }
       notificationService(EnumNotificationUser.Self, usersInWaiting, name, remainingSeatsCount);
       notificationService(EnumNotificationUser.CanCheckInNow, usersCanCheckInNow, name, remainingSeatsCount);
       notificationService(EnumNotificationUser.StillInWaiting, usersStillInWaiting, name, remainingSeatsCount);

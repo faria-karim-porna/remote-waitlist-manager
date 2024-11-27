@@ -112,7 +112,13 @@ const getUsersWhoStillInWaiting = (users) => {
 const sendNotification = (name, data) => {
     io.to(name !== null && name !== void 0 ? name : "").emit("notification", data);
 };
-const notificationService = (userType, allUsers, name, remainingSeatsCount) => __awaiter(void 0, void 0, void 0, function* () {
+const addWaitingPositionData = (users) => {
+    for (let index = 0; index < users.length; index++) {
+        users[index].waitingPosition = index + 1;
+    }
+    return users;
+};
+const notificationService = (userType, allUsers, name, remainingSeatsCount) => {
     switch (userType) {
         case EnumNotificationUser.Self:
             sendNotification(name !== null && name !== void 0 ? name : "", { status: EnumStatus.ServiceCompleted });
@@ -120,7 +126,6 @@ const notificationService = (userType, allUsers, name, remainingSeatsCount) => _
         case EnumNotificationUser.CanCheckInNow:
             for (let index = 0; index < allUsers.length; index++) {
                 const name = allUsers[index].name;
-                yield allUsers[index].save();
                 sendNotification(name !== null && name !== void 0 ? name : "", { canCheckIn: true });
             }
             break;
@@ -133,7 +138,7 @@ const notificationService = (userType, allUsers, name, remainingSeatsCount) => _
         default:
             break;
     }
-});
+};
 const runServiceSchedule = (name, partySize) => {
     const totalSeatsCount = 10;
     const serviceTimePerPersonInMilliSec = 3000;
@@ -158,6 +163,9 @@ const runServiceSchedule = (name, partySize) => {
             const usersInWaiting = yield UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false });
             const usersCanCheckInNow = getUsersWhoCanCheckInNow(usersInWaiting, remainingSeatsCount);
             const usersStillInWaiting = getUsersWhoStillInWaiting(usersInWaiting);
+            for (let index = 0; index < usersCanCheckInNow.length; index++) {
+                yield usersCanCheckInNow[index].save();
+            }
             notificationService(EnumNotificationUser.Self, usersInWaiting, name, remainingSeatsCount);
             notificationService(EnumNotificationUser.CanCheckInNow, usersCanCheckInNow, name, remainingSeatsCount);
             notificationService(EnumNotificationUser.StillInWaiting, usersStillInWaiting, name, remainingSeatsCount);
