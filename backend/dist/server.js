@@ -216,25 +216,14 @@ const notificationService = (userType, users, notification, remainingSeatsCount)
         case EnumNotificationUser.Self:
             const selfNotificationProcessor = new SelfNotificationProcessor();
             selfNotificationProcessor.process(users, notification, remainingSeatsCount);
-            // const observer = new UsersObserver(users[0]);
-            // notification.attach(observer);
-            // notification.notify({ status: EnumStatus.ServiceCompleted });
-            // notification.detachAll();
             break;
         case EnumNotificationUser.CanCheckInNow:
             const checkInNowNotificationProcessor = new CheckInNowNotificationProcessor();
             checkInNowNotificationProcessor.process(users, notification, remainingSeatsCount);
-            // addObserversWhoCanCheckInNow(users, notification, remainingSeatsCount);
-            // notification.notify(undefined, updateCanCheckIn);
-            // notification.notify({ canCheckIn: true });
-            // notification.detachAll();
             break;
         case EnumNotificationUser.StillInWaiting:
             const stillInWaitingNotificationProcessor = new StillInWaitingNotificationProcessor();
             stillInWaitingNotificationProcessor.process(users, notification, remainingSeatsCount);
-            // addObserversWhoStillInWaiting(users, notification);
-            // notification.notify(undefined, sendUpdatedWaitingPosition);
-            // notification.detachAll();
             break;
         default:
             break;
