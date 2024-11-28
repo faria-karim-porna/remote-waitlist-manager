@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.server = exports.app = void 0;
+exports.sendNotification = exports.server = exports.app = void 0;
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const cors_1 = __importDefault(require("cors"));
@@ -32,6 +32,9 @@ const enums_1 = require("./dataTypes/enums");
 const usersModel_1 = require("./models/usersModel");
 const database_1 = __importDefault(require("./config/database"));
 const socket_1 = __importDefault(require("./config/socket"));
+const notificationObserver_1 = require("./observers/notificationObserver");
+const countHelper_1 = require("./helpers/countHelper");
+const observerHelper_1 = require("./helpers/observerHelper");
 dotenv_1.default.config();
 exports.app = (0, express_1.default)();
 exports.server = http_1.default.createServer(exports.app);
@@ -39,73 +42,6 @@ exports.app.use((0, cors_1.default)());
 exports.app.use(express_1.default.json());
 (0, database_1.default)();
 const io = (0, socket_1.default)();
-class Notification {
-    constructor() {
-        this.observers = [];
-    }
-    attach(observer) {
-        this.observers.push(observer);
-    }
-    detach(observer) {
-        const index = this.observers.indexOf(observer);
-        if (index !== -1) {
-            this.observers.splice(index, 1);
-        }
-    }
-    detachAll() {
-        this.observers = [];
-    }
-    notify(data, func) {
-        if (data) {
-            this.observers.forEach((observer) => observer.update(data));
-        }
-        else if (func) {
-            this.observers.forEach((observer, index) => {
-                observer.update(undefined, () => func === null || func === void 0 ? void 0 : func(observer === null || observer === void 0 ? void 0 : observer.getObserver, index));
-            });
-        }
-    }
-}
-class UsersObserver {
-    constructor(user) {
-        this.user = user;
-    }
-    get getObserver() {
-        return this.user;
-    }
-    update(data, func) {
-        var _a;
-        if (data) {
-            sendNotification((_a = this.user.name) !== null && _a !== void 0 ? _a : "", data);
-        }
-        else {
-            func === null || func === void 0 ? void 0 : func();
-        }
-    }
-}
-const addObserversWhoCanCheckInNow = (users, notification, remainingSeatsCount) => {
-    var _a;
-    for (let index = 0; index < users.length; index++) {
-        remainingSeatsCount = (remainingSeatsCount !== null && remainingSeatsCount !== void 0 ? remainingSeatsCount : 0) - ((_a = users[index].partySize) !== null && _a !== void 0 ? _a : 0);
-        if (remainingSeatsCount >= 0) {
-            const observer = new UsersObserver(users[index]);
-            notification.attach(observer);
-        }
-        else {
-            break;
-        }
-    }
-};
-const addObserversWhoStillInWaiting = (users, notification) => {
-    const usersStillInWaiting = [];
-    for (let index = 0; index < users.length; index++) {
-        if (users[index].status === enums_1.EnumStatus.InWaitingList && users[index].canCheckIn === false) {
-            const observer = new UsersObserver(users[index]);
-            notification.attach(observer);
-        }
-    }
-    return usersStillInWaiting;
-};
 // ============================ template method design pattern =====================================
 class NotificationProcessor {
     process(users, notification, remainingSeatsCount) {
@@ -116,7 +52,7 @@ class NotificationProcessor {
 }
 class SelfNotificationProcessor extends NotificationProcessor {
     attach(users, notification, remainingSeatsCount) {
-        const observer = new UsersObserver(users[0]);
+        const observer = new notificationObserver_1.UsersObserver(users[0]);
         notification.attach(observer);
     }
     notify(notification) {
@@ -128,7 +64,7 @@ class SelfNotificationProcessor extends NotificationProcessor {
 }
 class CheckInNowNotificationProcessor extends NotificationProcessor {
     attach(users, notification, remainingSeatsCount) {
-        addObserversWhoCanCheckInNow(users, notification, remainingSeatsCount);
+        (0, observerHelper_1.addObserversWhoCanCheckInNow)(users, notification, remainingSeatsCount);
     }
     notify(notification) {
         notification.notify(undefined, updateCanCheckIn);
@@ -140,7 +76,7 @@ class CheckInNowNotificationProcessor extends NotificationProcessor {
 }
 class StillInWaitingNotificationProcessor extends NotificationProcessor {
     attach(users, notification, remainingSeatsCount) {
-        addObserversWhoStillInWaiting(users, notification);
+        (0, observerHelper_1.addObserversWhoStillInWaiting)(users, notification);
     }
     notify(notification) {
         notification.notify(undefined, sendUpdatedWaitingPosition);
@@ -153,13 +89,14 @@ class StillInWaitingNotificationProcessor extends NotificationProcessor {
 const sendNotification = (name, data) => {
     io.to(name !== null && name !== void 0 ? name : "").emit("notification", data);
 };
+exports.sendNotification = sendNotification;
 const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
     user.canCheckIn = true;
     yield user.save();
 });
 const sendUpdatedWaitingPosition = (user, index) => __awaiter(void 0, void 0, void 0, function* () {
     const name = user.name;
-    sendNotification(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
+    (0, exports.sendNotification)(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
 });
 const notificationService = (userType, users, notification, remainingSeatsCount) => {
     switch (userType) {
@@ -179,53 +116,6 @@ const notificationService = (userType, users, notification, remainingSeatsCount)
             break;
     }
 };
-// ============================ count helpers =====================================
-const calculateBookedSeatsCount = (allUsers) => {
-    var _a, _b;
-    let currentBookedSeatsCount = 0;
-    for (let index = 0; index < allUsers.length; index++) {
-        if (allUsers[index].status === enums_1.EnumStatus.SeatIn) {
-            currentBookedSeatsCount = currentBookedSeatsCount + ((_b = (_a = allUsers[index]) === null || _a === void 0 ? void 0 : _a.partySize) !== null && _b !== void 0 ? _b : 0);
-        }
-    }
-    return currentBookedSeatsCount;
-};
-const calculateCanCheckInSeatsCount = (allUsers) => {
-    var _a, _b;
-    let currentCanCheckInSeatsCount = 0;
-    for (let index = 0; index < allUsers.length; index++) {
-        if (allUsers[index].status === enums_1.EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
-            currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + ((_b = (_a = allUsers[index]) === null || _a === void 0 ? void 0 : _a.partySize) !== null && _b !== void 0 ? _b : 0);
-        }
-    }
-    return currentCanCheckInSeatsCount;
-};
-const calculateUsersInWaitingListCount = (allUsers) => {
-    let usersInWaitingListCount = 0;
-    for (let index = 0; index < allUsers.length; index++) {
-        if (allUsers[index].status === enums_1.EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
-            usersInWaitingListCount = usersInWaitingListCount + 1;
-        }
-    }
-    return usersInWaitingListCount;
-};
-const calculateCount = (users, type) => {
-    let usersOrSeatsCount = 0;
-    switch (type) {
-        case enums_1.EnumCount.BookedSeats:
-            usersOrSeatsCount = calculateBookedSeatsCount(users);
-            break;
-        case enums_1.EnumCount.CanCheckInSeats:
-            usersOrSeatsCount = calculateCanCheckInSeatsCount(users);
-            break;
-        case enums_1.EnumCount.UsersInWaiting:
-            usersOrSeatsCount = calculateUsersInWaitingListCount(users);
-            break;
-        default:
-            break;
-    }
-    return usersOrSeatsCount;
-};
 // ============================ schedule service =====================================
 const runServiceSchedule = (name, partySize) => {
     const totalSeatsCount = 10;
@@ -236,11 +126,11 @@ const runServiceSchedule = (name, partySize) => {
             user.status = enums_1.EnumStatus.ServiceCompleted;
             yield user.save();
             const allUsers = yield usersModel_1.UsersList.find();
-            const currentBookedSeatsCount = calculateCount(allUsers, enums_1.EnumCount.BookedSeats);
-            const currentCanCheckInSeatsCount = calculateCount(allUsers, enums_1.EnumCount.CanCheckInSeats);
+            const currentBookedSeatsCount = (0, countHelper_1.calculateCount)(allUsers, enums_1.EnumCount.BookedSeats);
+            const currentCanCheckInSeatsCount = (0, countHelper_1.calculateCount)(allUsers, enums_1.EnumCount.CanCheckInSeats);
             let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
             const usersInWaiting = yield usersModel_1.UsersList.find({ status: enums_1.EnumStatus.InWaitingList, canCheckIn: false });
-            const notification = new Notification();
+            const notification = new notificationObserver_1.Notification();
             notificationService(enums_1.EnumNotificationUser.Self, [user], notification);
             notificationService(enums_1.EnumNotificationUser.CanCheckInNow, usersInWaiting, notification, remainingSeatsCount);
             notificationService(enums_1.EnumNotificationUser.StillInWaiting, usersInWaiting, notification);
@@ -252,9 +142,9 @@ exports.app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, fu
     const totalSeatsCount = 10;
     const { name, partySize } = req.body;
     const allUserInfo = yield usersModel_1.UsersList.find();
-    const bookedSeatsCount = calculateCount(allUserInfo, enums_1.EnumCount.BookedSeats);
-    const canCheckInSeatsCount = calculateCount(allUserInfo, enums_1.EnumCount.CanCheckInSeats);
-    const usersInWaitingListCount = calculateCount(allUserInfo, enums_1.EnumCount.UsersInWaiting);
+    const bookedSeatsCount = (0, countHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.BookedSeats);
+    const canCheckInSeatsCount = (0, countHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.CanCheckInSeats);
+    const usersInWaitingListCount = (0, countHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.UsersInWaiting);
     const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
     const isSeatAvailable = partySize <= availableSeatsCount;
     const isNoUserInWaiting = usersInWaitingListCount === 0;

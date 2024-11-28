@@ -8,6 +8,9 @@ import { UsersList } from "./models/usersModel";
 import { User } from "./dataTypes/types";
 import database from "./config/database";
 import socket from "./config/socket";
+import { Notification, UsersObserver } from "./observers/notificationObserver";
+import { calculateCount } from "./helpers/countHelper";
+import { addObserversWhoCanCheckInNow, addObserversWhoStillInWaiting } from "./helpers/observerHelper";
 
 dotenv.config();
 
@@ -20,92 +23,6 @@ app.use(express.json());
 database();
 const io = socket();
 
-// ============================ observer design pattern =====================================
-
-interface Observer<T> {
-  get getObserver(): IUser;
-  update(data?: Partial<T>, func?: () => void): void;
-}
-
-interface Subject<T> {
-  attach(observer: Observer<T>): void;
-  detach(observer: Observer<T>): void;
-  detachAll(): void;
-  notify(data?: T, func?: (param: T, index?: number) => void): void;
-}
-
-class Notification implements Subject<Partial<IUser>> {
-  private observers: Observer<IUser>[] = [];
-
-  attach(observer: Observer<IUser>): void {
-    this.observers.push(observer);
-  }
-
-  detach(observer: Observer<IUser>): void {
-    const index = this.observers.indexOf(observer);
-    if (index !== -1) {
-      this.observers.splice(index, 1);
-    }
-  }
-
-  detachAll(): void {
-    this.observers = [];
-  }
-
-  notify(data?: Partial<IUser>, func?: (param: IUser, index?: number) => void): void {
-    if (data) {
-      this.observers.forEach((observer) => observer.update(data));
-    } else if (func) {
-      this.observers.forEach((observer, index) => {
-        observer.update(undefined, () => func?.(observer?.getObserver, index));
-      });
-    }
-  }
-}
-
-class UsersObserver implements Observer<IUser> {
-  private user: IUser;
-
-  constructor(user: IUser) {
-    this.user = user;
-  }
-
-  get getObserver() {
-    return this.user;
-  }
-
-  update(data?: Partial<IUser>, func?: () => void): void {
-    if (data) {
-      sendNotification(this.user.name ?? "", data);
-    } else {
-      func?.();
-    }
-  }
-}
-
-const addObserversWhoCanCheckInNow = (users: IUser[], notification: Notification, remainingSeatsCount?: number) => {
-  for (let index = 0; index < users.length; index++) {
-    remainingSeatsCount = (remainingSeatsCount ?? 0) - (users[index].partySize ?? 0);
-    if (remainingSeatsCount >= 0) {
-      const observer = new UsersObserver(users[index]);
-      notification.attach(observer);
-    } else {
-      break;
-    }
-  }
-};
-
-const addObserversWhoStillInWaiting = (users: IUser[], notification: Notification) => {
-  const usersStillInWaiting: IUser[] = [];
-  for (let index = 0; index < users.length; index++) {
-    if (users[index].status === EnumStatus.InWaitingList && users[index].canCheckIn === false) {
-      const observer = new UsersObserver(users[index]);
-      notification.attach(observer);
-    }
-  }
-
-  return usersStillInWaiting;
-};
 
 // ============================ template method design pattern =====================================
 
@@ -166,8 +83,7 @@ class StillInWaitingNotificationProcessor extends NotificationProcessor {
 }
 
 // ============================ notification helpers =====================================
-
-const sendNotification = (name: string, data: Partial<IUser>) => {
+export const sendNotification = (name: string, data: Partial<IUser>) => {
   io.to(name ?? "").emit("notification", data);
 };
 
@@ -198,56 +114,6 @@ const notificationService = (userType: EnumNotificationUser, users: IUser[], not
     default:
       break;
   }
-};
-
-// ============================ count helpers =====================================
-
-const calculateBookedSeatsCount = (allUsers: IUser[]) => {
-  let currentBookedSeatsCount = 0;
-  for (let index = 0; index < allUsers.length; index++) {
-    if (allUsers[index].status === EnumStatus.SeatIn) {
-      currentBookedSeatsCount = currentBookedSeatsCount + (allUsers[index]?.partySize ?? 0);
-    }
-  }
-  return currentBookedSeatsCount;
-};
-
-const calculateCanCheckInSeatsCount = (allUsers: IUser[]) => {
-  let currentCanCheckInSeatsCount = 0;
-  for (let index = 0; index < allUsers.length; index++) {
-    if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === true) {
-      currentCanCheckInSeatsCount = currentCanCheckInSeatsCount + (allUsers[index]?.partySize ?? 0);
-    }
-  }
-  return currentCanCheckInSeatsCount;
-};
-
-const calculateUsersInWaitingListCount = (allUsers: IUser[]) => {
-  let usersInWaitingListCount = 0;
-  for (let index = 0; index < allUsers.length; index++) {
-    if (allUsers[index].status === EnumStatus.InWaitingList && allUsers[index].canCheckIn === false) {
-      usersInWaitingListCount = usersInWaitingListCount + 1;
-    }
-  }
-  return usersInWaitingListCount;
-};
-
-const calculateCount = (users: IUser[], type: EnumCount) => {
-  let usersOrSeatsCount = 0;
-  switch (type) {
-    case EnumCount.BookedSeats:
-      usersOrSeatsCount = calculateBookedSeatsCount(users);
-      break;
-    case EnumCount.CanCheckInSeats:
-      usersOrSeatsCount = calculateCanCheckInSeatsCount(users);
-      break;
-    case EnumCount.UsersInWaiting:
-      usersOrSeatsCount = calculateUsersInWaitingListCount(users);
-      break;
-    default:
-      break;
-  }
-  return usersOrSeatsCount;
 };
 
 // ============================ schedule service =====================================
