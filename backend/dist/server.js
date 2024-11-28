@@ -32,9 +32,8 @@ const enums_1 = require("./dataTypes/enums");
 const usersModel_1 = require("./models/usersModel");
 const database_1 = __importDefault(require("./config/database"));
 const socket_1 = __importDefault(require("./config/socket"));
-const notificationObserver_1 = require("./observers/notificationObserver");
 const countHelper_1 = require("./helpers/countHelper");
-const observerHelper_1 = require("./helpers/observerHelper");
+const scheduleService_1 = require("./services.ts/scheduleService");
 dotenv_1.default.config();
 exports.app = (0, express_1.default)();
 exports.server = http_1.default.createServer(exports.app);
@@ -42,101 +41,11 @@ exports.app.use((0, cors_1.default)());
 exports.app.use(express_1.default.json());
 (0, database_1.default)();
 const io = (0, socket_1.default)();
-// ============================ template method design pattern =====================================
-class NotificationProcessor {
-    process(users, notification, remainingSeatsCount) {
-        this.attach(users, notification, remainingSeatsCount);
-        this.notify(notification);
-        this.detachAll(notification);
-    }
-}
-class SelfNotificationProcessor extends NotificationProcessor {
-    attach(users, notification, remainingSeatsCount) {
-        const observer = new notificationObserver_1.UsersObserver(users[0]);
-        notification.attach(observer);
-    }
-    notify(notification) {
-        notification.notify({ status: enums_1.EnumStatus.ServiceCompleted });
-    }
-    detachAll(notification) {
-        notification.detachAll();
-    }
-}
-class CheckInNowNotificationProcessor extends NotificationProcessor {
-    attach(users, notification, remainingSeatsCount) {
-        (0, observerHelper_1.addObserversWhoCanCheckInNow)(users, notification, remainingSeatsCount);
-    }
-    notify(notification) {
-        notification.notify(undefined, updateCanCheckIn);
-        notification.notify({ canCheckIn: true });
-    }
-    detachAll(notification) {
-        notification.detachAll();
-    }
-}
-class StillInWaitingNotificationProcessor extends NotificationProcessor {
-    attach(users, notification, remainingSeatsCount) {
-        (0, observerHelper_1.addObserversWhoStillInWaiting)(users, notification);
-    }
-    notify(notification) {
-        notification.notify(undefined, sendUpdatedWaitingPosition);
-    }
-    detachAll(notification) {
-        notification.detachAll();
-    }
-}
 // ============================ notification helpers =====================================
 const sendNotification = (name, data) => {
     io.to(name !== null && name !== void 0 ? name : "").emit("notification", data);
 };
 exports.sendNotification = sendNotification;
-const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
-    user.canCheckIn = true;
-    yield user.save();
-});
-const sendUpdatedWaitingPosition = (user, index) => __awaiter(void 0, void 0, void 0, function* () {
-    const name = user.name;
-    (0, exports.sendNotification)(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
-});
-const notificationService = (userType, users, notification, remainingSeatsCount) => {
-    switch (userType) {
-        case enums_1.EnumNotificationUser.Self:
-            const selfNotificationProcessor = new SelfNotificationProcessor();
-            selfNotificationProcessor.process(users, notification, remainingSeatsCount);
-            break;
-        case enums_1.EnumNotificationUser.CanCheckInNow:
-            const checkInNowNotificationProcessor = new CheckInNowNotificationProcessor();
-            checkInNowNotificationProcessor.process(users, notification, remainingSeatsCount);
-            break;
-        case enums_1.EnumNotificationUser.StillInWaiting:
-            const stillInWaitingNotificationProcessor = new StillInWaitingNotificationProcessor();
-            stillInWaitingNotificationProcessor.process(users, notification, remainingSeatsCount);
-            break;
-        default:
-            break;
-    }
-};
-// ============================ schedule service =====================================
-const runServiceSchedule = (name, partySize) => {
-    const totalSeatsCount = 10;
-    const serviceTimePerPersonInMilliSec = 3000;
-    setTimeout(() => __awaiter(void 0, void 0, void 0, function* () {
-        const user = yield usersModel_1.UsersList.findOne({ name: name });
-        if (user) {
-            user.status = enums_1.EnumStatus.ServiceCompleted;
-            yield user.save();
-            const allUsers = yield usersModel_1.UsersList.find();
-            const currentBookedSeatsCount = (0, countHelper_1.calculateCount)(allUsers, enums_1.EnumCount.BookedSeats);
-            const currentCanCheckInSeatsCount = (0, countHelper_1.calculateCount)(allUsers, enums_1.EnumCount.CanCheckInSeats);
-            let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
-            const usersInWaiting = yield usersModel_1.UsersList.find({ status: enums_1.EnumStatus.InWaitingList, canCheckIn: false });
-            const notification = new notificationObserver_1.Notification();
-            notificationService(enums_1.EnumNotificationUser.Self, [user], notification);
-            notificationService(enums_1.EnumNotificationUser.CanCheckInNow, usersInWaiting, notification, remainingSeatsCount);
-            notificationService(enums_1.EnumNotificationUser.StillInWaiting, usersInWaiting, notification);
-        }
-    }), serviceTimePerPersonInMilliSec * partySize);
-};
 // ============================ API =====================================
 exports.app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const totalSeatsCount = 10;
@@ -158,7 +67,7 @@ exports.app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, fu
         const newUserEntry = new usersModel_1.UsersList(Object.assign({}, newUser));
         yield newUserEntry.save();
         res.status(201).json({ message: "New user has been added", user: newUser });
-        runServiceSchedule(name, partySize);
+        (0, scheduleService_1.runScheduleService)(name, partySize);
     }
     else {
         const waitingListLastPosition = (yield usersModel_1.UsersList.find({ status: enums_1.EnumStatus.InWaitingList, canCheckIn: false })).length;
@@ -177,7 +86,7 @@ exports.app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0,
         user.status = enums_1.EnumStatus.SeatIn;
         yield user.save();
         res.status(200).send({ message: "User has checked in", user: user });
-        runServiceSchedule(name, (_a = user.partySize) !== null && _a !== void 0 ? _a : 0);
+        (0, scheduleService_1.runScheduleService)(name, (_a = user.partySize) !== null && _a !== void 0 ? _a : 0);
     }
     else {
         res.status(404).send({ message: "User not found" });
