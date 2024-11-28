@@ -30,6 +30,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const socket_io_1 = require("socket.io");
 dotenv_1.default.config();
+// ============================ mongodb nodejs connection =====================================
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
 app.use((0, cors_1.default)());
@@ -48,6 +49,7 @@ const io = new socket_io_1.Server(server, {
         methods: ["GET", "POST"],
     },
 });
+// ============================ Socket.io nodejs connection =====================================
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
     socket.on("join", (name) => {
@@ -58,6 +60,7 @@ io.on("connection", (socket) => {
         console.log(`User disconnected: ${socket.id}`);
     });
 });
+// ============================ enums =====================================
 var EnumStatus;
 (function (EnumStatus) {
     EnumStatus["None"] = "None";
@@ -65,6 +68,19 @@ var EnumStatus;
     EnumStatus["InWaitingList"] = "In Waiting List";
     EnumStatus["ServiceCompleted"] = "Service Completed";
 })(EnumStatus || (EnumStatus = {}));
+var EnumNotificationUser;
+(function (EnumNotificationUser) {
+    EnumNotificationUser["Self"] = "Self";
+    EnumNotificationUser["CanCheckInNow"] = "Can Check In Now";
+    EnumNotificationUser["StillInWaiting"] = "Still In Waiting";
+})(EnumNotificationUser || (EnumNotificationUser = {}));
+var EnumCount;
+(function (EnumCount) {
+    EnumCount["BookedSeats"] = "Booked Seats";
+    EnumCount["CanCheckInSeats"] = "Can Check In Seats";
+    EnumCount["UsersInWaiting"] = "Users In Waiting";
+})(EnumCount || (EnumCount = {}));
+// ============================ models =====================================
 const usersListSchema = new mongoose_1.default.Schema({
     name: String,
     partySize: Number,
@@ -73,18 +89,6 @@ const usersListSchema = new mongoose_1.default.Schema({
     canCheckIn: { type: Boolean, default: false },
 });
 const UsersList = mongoose_1.default.model("UsersList", usersListSchema);
-// const seatsCountSchema = new mongoose.Schema({
-//   bookedSeats: { type: Number, default: 0 },
-//   inWaitingSeats: { type: Number, default: 0 },
-//   usersInWaitingList: { type: Number, default: 0 },
-// });
-// const SeatsCount = mongoose.model("SeatsCount", seatsCountSchema);
-var EnumNotificationUser;
-(function (EnumNotificationUser) {
-    EnumNotificationUser["Self"] = "Self";
-    EnumNotificationUser["CanCheckInNow"] = "Can Check In Now";
-    EnumNotificationUser["StillInWaiting"] = "Still In Waiting";
-})(EnumNotificationUser || (EnumNotificationUser = {}));
 class Notification {
     constructor() {
         this.observers = [];
@@ -112,7 +116,6 @@ class Notification {
         }
     }
 }
-// Concrete Observer
 class UsersObserver {
     constructor(user) {
         this.user = user;
@@ -120,7 +123,6 @@ class UsersObserver {
     get getObserver() {
         return this.user;
     }
-    // React to updates from the subject
     update(data, func) {
         var _a;
         if (data) {
@@ -154,36 +156,91 @@ const addObserversWhoStillInWaiting = (users, notification) => {
     }
     return usersStillInWaiting;
 };
+// ============================ template method design pattern =====================================
+class NotificationProcessor {
+    process(users, notification, remainingSeatsCount) {
+        this.attach(users, notification, remainingSeatsCount);
+        this.notify(notification);
+        this.detachAll(notification);
+    }
+}
+class SelfNotificationProcessor extends NotificationProcessor {
+    attach(users, notification, remainingSeatsCount) {
+        const observer = new UsersObserver(users[0]);
+        notification.attach(observer);
+    }
+    notify(notification) {
+        notification.notify({ status: EnumStatus.ServiceCompleted });
+    }
+    detachAll(notification) {
+        notification.detachAll();
+    }
+}
+class CheckInNowNotificationProcessor extends NotificationProcessor {
+    attach(users, notification, remainingSeatsCount) {
+        addObserversWhoCanCheckInNow(users, notification, remainingSeatsCount);
+    }
+    notify(notification) {
+        notification.notify(undefined, updateCanCheckIn);
+        notification.notify({ canCheckIn: true });
+    }
+    detachAll(notification) {
+        notification.detachAll();
+    }
+}
+class StillInWaitingNotificationProcessor extends NotificationProcessor {
+    attach(users, notification, remainingSeatsCount) {
+        addObserversWhoStillInWaiting(users, notification);
+    }
+    notify(notification) {
+        notification.notify(undefined, sendUpdatedWaitingPosition);
+    }
+    detachAll(notification) {
+        notification.detachAll();
+    }
+}
+// ============================ notification helpers =====================================
 const sendNotification = (name, data) => {
     io.to(name !== null && name !== void 0 ? name : "").emit("notification", data);
 };
-const addWaitingPositionData = (users) => {
-    for (let index = 0; index < users.length; index++) {
-        users[index].waitingPosition = index + 1;
-    }
-    return users;
-};
-const notificationService = (userType, allUsers, name, remainingSeatsCount) => {
+const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    user.canCheckIn = true;
+    yield user.save();
+});
+const sendUpdatedWaitingPosition = (user, index) => __awaiter(void 0, void 0, void 0, function* () {
+    const name = user.name;
+    sendNotification(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
+});
+const notificationService = (userType, users, notification, remainingSeatsCount) => {
     switch (userType) {
         case EnumNotificationUser.Self:
-            sendNotification(name !== null && name !== void 0 ? name : "", { status: EnumStatus.ServiceCompleted });
+            const selfNotificationProcessor = new SelfNotificationProcessor();
+            selfNotificationProcessor.process(users, notification, remainingSeatsCount);
+            // const observer = new UsersObserver(users[0]);
+            // notification.attach(observer);
+            // notification.notify({ status: EnumStatus.ServiceCompleted });
+            // notification.detachAll();
             break;
         case EnumNotificationUser.CanCheckInNow:
-            for (let index = 0; index < allUsers.length; index++) {
-                const name = allUsers[index].name;
-                sendNotification(name !== null && name !== void 0 ? name : "", { canCheckIn: true });
-            }
+            const checkInNowNotificationProcessor = new CheckInNowNotificationProcessor();
+            checkInNowNotificationProcessor.process(users, notification, remainingSeatsCount);
+            // addObserversWhoCanCheckInNow(users, notification, remainingSeatsCount);
+            // notification.notify(undefined, updateCanCheckIn);
+            // notification.notify({ canCheckIn: true });
+            // notification.detachAll();
             break;
         case EnumNotificationUser.StillInWaiting:
-            for (let index = 0; index < allUsers.length; index++) {
-                const name = allUsers[index].name;
-                sendNotification(name !== null && name !== void 0 ? name : "", { waitingPosition: index + 1 });
-            }
+            const stillInWaitingNotificationProcessor = new StillInWaitingNotificationProcessor();
+            stillInWaitingNotificationProcessor.process(users, notification, remainingSeatsCount);
+            // addObserversWhoStillInWaiting(users, notification);
+            // notification.notify(undefined, sendUpdatedWaitingPosition);
+            // notification.detachAll();
             break;
         default:
             break;
     }
 };
+// ============================ count helpers =====================================
 const calculateBookedSeatsCount = (allUsers) => {
     var _a, _b;
     let currentBookedSeatsCount = 0;
@@ -213,12 +270,6 @@ const calculateUsersInWaitingListCount = (allUsers) => {
     }
     return usersInWaitingListCount;
 };
-var EnumCount;
-(function (EnumCount) {
-    EnumCount["BookedSeats"] = "Booked Seats";
-    EnumCount["CanCheckInSeats"] = "Can Check In Seats";
-    EnumCount["UsersInWaiting"] = "Users In Waiting";
-})(EnumCount || (EnumCount = {}));
 const calculateCount = (users, type) => {
     let usersOrSeatsCount = 0;
     switch (type) {
@@ -236,14 +287,7 @@ const calculateCount = (users, type) => {
     }
     return usersOrSeatsCount;
 };
-const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
-    user.canCheckIn = true;
-    yield user.save();
-});
-const sendUpdatedWaitingPosition = (user, index) => __awaiter(void 0, void 0, void 0, function* () {
-    const name = user.name;
-    sendNotification(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
-});
+// ============================ schedule service =====================================
 const runServiceSchedule = (name, partySize) => {
     const totalSeatsCount = 10;
     const serviceTimePerPersonInMilliSec = 3000;
@@ -258,32 +302,13 @@ const runServiceSchedule = (name, partySize) => {
             let remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
             const usersInWaiting = yield UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false });
             const notification = new Notification();
-            const observer = new UsersObserver(user);
-            notification.attach(observer);
-            notification.notify({ status: EnumStatus.ServiceCompleted });
-            notification.detachAll();
-            addObserversWhoCanCheckInNow(usersInWaiting, notification, remainingSeatsCount);
-            notification.notify(undefined, updateCanCheckIn);
-            notification.notify({ canCheckIn: true });
-            notification.detachAll();
-            addObserversWhoStillInWaiting(usersInWaiting, notification);
-            notification.notify(undefined, sendUpdatedWaitingPosition);
-            notification.detachAll();
-            // Usage Example
-            // const observer2 = new UsersObserver("Observer 2");
-            // notification.attach(observer2);
-            // // Notify observers with some data
-            // notification.notify({ message: "Hello Observers!" });
-            // // Detach one observer
-            // notification.detach(observer1);
-            // // Notify remaining observers
-            // notification.notify({ message: "Second Update!" });
-            // notificationService(EnumNotificationUser.Self, usersInWaiting, name, remainingSeatsCount);
-            // notificationService(EnumNotificationUser.CanCheckInNow, usersCanCheckInNow, name, remainingSeatsCount);
-            // notificationService(EnumNotificationUser.StillInWaiting, usersStillInWaiting, name, remainingSeatsCount);
+            notificationService(EnumNotificationUser.Self, [user], notification);
+            notificationService(EnumNotificationUser.CanCheckInNow, usersInWaiting, notification, remainingSeatsCount);
+            notificationService(EnumNotificationUser.StillInWaiting, usersInWaiting, notification);
         }
     }), serviceTimePerPersonInMilliSec * partySize);
 };
+// ============================ API =====================================
 app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const totalSeatsCount = 10;
     const { name, partySize } = req.body;
@@ -294,11 +319,11 @@ app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
     const isSeatAvailable = partySize <= availableSeatsCount;
     const isNoUserInWaiting = usersInWaitingListCount === 0;
-    const canSeatIn = isSeatAvailable && isNoUserInWaiting;
     let newUser = {
         name: name,
         partySize: partySize,
     };
+    const canSeatIn = isSeatAvailable && isNoUserInWaiting;
     if (canSeatIn) {
         newUser = Object.assign(Object.assign({}, newUser), { status: EnumStatus.SeatIn });
         const newUserEntry = new UsersList(Object.assign({}, newUser));
