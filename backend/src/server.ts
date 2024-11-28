@@ -1,59 +1,24 @@
 import express, { Request, Response } from "express";
 import http from "http";
 import cors from "cors";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { Server } from "socket.io";
 import { IUser } from "./dataTypes/interfaces";
 import { EnumCount, EnumNotificationUser, EnumStatus } from "./dataTypes/enums";
 import { UsersList } from "./models/usersModel";
 import { User } from "./dataTypes/types";
+import database from "./config/database";
+import socket from "./config/socket";
 
 dotenv.config();
 
-// ============================ mongodb nodejs connection =====================================
-
-const app = express();
-const server = http.createServer(app);
+export const app = express();
+export const server = http.createServer(app);
 
 app.use(cors());
 app.use(express.json());
 
-const mongoUri: string | undefined = process.env.MONGO_URI;
-if (!mongoUri) {
-  throw new Error("MONGO_URI is not defined in the environment variables");
-}
-
-mongoose
-  .connect(mongoUri)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.log("Error connecting to MongoDB:", err));
-
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-  },
-});
-
-// ============================ Socket.io nodejs connection =====================================
-
-io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
-
-  socket.on("join", (name: string) => {
-    console.log(`${socket.id} joined ${name}`);
-    socket.join(name);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
-  });
-});
-
-
-
-
+database();
+const io = socket();
 
 // ============================ observer design pattern =====================================
 

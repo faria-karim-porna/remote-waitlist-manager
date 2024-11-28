@@ -23,45 +23,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.server = exports.app = void 0;
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const cors_1 = __importDefault(require("cors"));
-const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const socket_io_1 = require("socket.io");
 const enums_1 = require("./dataTypes/enums");
 const usersModel_1 = require("./models/usersModel");
+const database_1 = __importDefault(require("./config/database"));
+const socket_1 = __importDefault(require("./config/socket"));
 dotenv_1.default.config();
-// ============================ mongodb nodejs connection =====================================
-const app = (0, express_1.default)();
-const server = http_1.default.createServer(app);
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
-const mongoUri = process.env.MONGO_URI;
-if (!mongoUri) {
-    throw new Error("MONGO_URI is not defined in the environment variables");
-}
-mongoose_1.default
-    .connect(mongoUri)
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => console.log("Error connecting to MongoDB:", err));
-const io = new socket_io_1.Server(server, {
-    cors: {
-        origin: "http://localhost:5173",
-        methods: ["GET", "POST"],
-    },
-});
-// ============================ Socket.io nodejs connection =====================================
-io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
-    socket.on("join", (name) => {
-        console.log(`${socket.id} joined ${name}`);
-        socket.join(name);
-    });
-    socket.on("disconnect", () => {
-        console.log(`User disconnected: ${socket.id}`);
-    });
-});
+exports.app = (0, express_1.default)();
+exports.server = http_1.default.createServer(exports.app);
+exports.app.use((0, cors_1.default)());
+exports.app.use(express_1.default.json());
+(0, database_1.default)();
+const io = (0, socket_1.default)();
 class Notification {
     constructor() {
         this.observers = [];
@@ -271,7 +248,7 @@ const runServiceSchedule = (name, partySize) => {
     }), serviceTimePerPersonInMilliSec * partySize);
 };
 // ============================ API =====================================
-app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const totalSeatsCount = 10;
     const { name, partySize } = req.body;
     const allUserInfo = yield usersModel_1.UsersList.find();
@@ -302,7 +279,7 @@ app.post("/api/join", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(201).json({ message: "New user has been added", user: newUser });
     }
 }));
-app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { name } = req.body;
     const user = yield usersModel_1.UsersList.findOne({ name: name });
@@ -316,7 +293,7 @@ app.post("/api/checkin", (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(404).send({ message: "User not found" });
     }
 }));
-app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.params;
     try {
         const allUsersInfo = yield usersModel_1.UsersList.find();
@@ -343,7 +320,7 @@ app.get("/api/user/:name", (req, res) => __awaiter(void 0, void 0, void 0, funct
         res.status(500).json({ message: "Server error", error: error });
     }
 }));
-app.delete("/api/deleteUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.app.delete("/api/deleteUser", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.body;
     const user = yield usersModel_1.UsersList.deleteOne({ name: name });
     if (user) {
@@ -354,6 +331,6 @@ app.delete("/api/deleteUser", (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 }));
 const PORT = 5000;
-server.listen(PORT, () => {
+exports.server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
