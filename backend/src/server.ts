@@ -1,9 +1,13 @@
 import express, { Request, Response } from "express";
 import http from "http";
 import cors from "cors";
-import mongoose, { Document } from "mongoose";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
+import { IUser } from "./dataTypes/interfaces";
+import { EnumCount, EnumNotificationUser, EnumStatus } from "./dataTypes/enums";
+import { UsersList } from "./models/usersModel";
+import { User } from "./dataTypes/types";
 
 dotenv.config();
 
@@ -47,67 +51,9 @@ io.on("connection", (socket) => {
   });
 });
 
-// ============================ enums =====================================
 
-enum EnumStatus {
-  None = "None",
-  SeatIn = "Seat In",
-  InWaitingList = "In Waiting List",
-  ServiceCompleted = "Service Completed",
-}
 
-enum EnumNotificationUser {
-  Self = "Self",
-  CanCheckInNow = "Can Check In Now",
-  StillInWaiting = "Still In Waiting",
-}
 
-enum EnumCount {
-  BookedSeats = "Booked Seats",
-  CanCheckInSeats = "Can Check In Seats",
-  UsersInWaiting = "Users In Waiting",
-}
-
-// ============================ types =====================================
-
-type User = {
-  name?: string;
-  partySize?: number;
-  status?: EnumStatus;
-  joinedAt?: Date;
-  canCheckIn?: boolean;
-  waitingPosition?: number;
-};
-
-// ============================ interfaces =====================================
-interface IUser extends Document {
-  name?: string;
-  partySize?: number;
-  status?: EnumStatus;
-  joinedAt?: Date;
-  canCheckIn?: boolean;
-  waitingPosition?: number;
-}
-
-// ============================ models =====================================
-
-const usersListSchema = new mongoose.Schema({
-  name: String,
-  partySize: Number,
-  status: { type: String, enum: Object.values(EnumStatus), default: EnumStatus.None },
-  joinedAt: { type: Date, default: Date.now },
-  canCheckIn: { type: Boolean, default: false },
-});
-
-const UsersList = mongoose.model<IUser>("UsersList", usersListSchema);
-
-// const seatsCountSchema = new mongoose.Schema({
-//   bookedSeats: { type: Number, default: 0 },
-//   inWaitingSeats: { type: Number, default: 0 },
-//   usersInWaitingList: { type: Number, default: 0 },
-// });
-
-// const SeatsCount = mongoose.model("SeatsCount", seatsCountSchema);
 
 // ============================ observer design pattern =====================================
 
