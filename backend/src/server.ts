@@ -106,7 +106,7 @@ interface Subject<T> {
   attach(observer: Observer<T>): void;
   detach(observer: Observer<T>): void;
   detachAll(): void;
-  notify(data?: T, func?: (param: T) => void): void;
+  notify(data?: T, func?: (param: T, index?: number) => void): void;
 }
 
 class Notification implements Subject<Partial<IUser>> {
@@ -127,12 +127,12 @@ class Notification implements Subject<Partial<IUser>> {
     this.observers = [];
   }
 
-  notify(data?: Partial<IUser>, func?: (param: IUser) => void): void {
+  notify(data?: Partial<IUser>, func?: (param: IUser, index?: number) => void): void {
     if (data) {
       this.observers.forEach((observer) => observer.update(data));
     } else if (func) {
-      this.observers.forEach((observer) => {
-        observer.update(undefined, () => func?.(observer?.getObserver));
+      this.observers.forEach((observer, index) => {
+        observer.update(undefined, () => func?.(observer?.getObserver, index));
       });
     }
   }
@@ -172,11 +172,12 @@ const addObserversWhoCanCheckInNow = (users: IUser[], notification: Notification
   }
 };
 
-const getUsersWhoStillInWaiting = (users: IUser[]) => {
+const addObserversWhoStillInWaiting = (users: IUser[], notification: Notification) => {
   const usersStillInWaiting: IUser[] = [];
   for (let index = 0; index < users.length; index++) {
     if (users[index].status === EnumStatus.InWaitingList && users[index].canCheckIn === false) {
-      usersStillInWaiting.push(users[index]);
+      const observer = new UsersObserver(users[index]);
+      notification.attach(observer);
     }
   }
 
@@ -271,6 +272,16 @@ const calculateCount = (users: IUser[], type: EnumCount) => {
   return usersOrSeatsCount;
 };
 
+const updateCanCheckIn = async (user: IUser) => {
+  user.canCheckIn = true;
+  await user.save();
+};
+
+const sendUpdatedWaitingPosition = async (user: IUser, index?: number) => {
+  const name = user.name;
+  sendNotification(name ?? "", { waitingPosition: (index ?? 0) + 1 });
+};
+
 const runServiceSchedule = (name: string, partySize: number) => {
   const totalSeatsCount = 10;
   const serviceTimePerPersonInMilliSec = 3000;
@@ -290,14 +301,12 @@ const runServiceSchedule = (name: string, partySize: number) => {
       notification.notify({ status: EnumStatus.ServiceCompleted });
       notification.detachAll();
       addObserversWhoCanCheckInNow(usersInWaiting, notification, remainingSeatsCount);
-      const updateCanCheckIn = async (user: IUser) => {
-        user.canCheckIn = true;
-        console.log("user", user);
-        await user.save();
-      };
       notification.notify(undefined, updateCanCheckIn);
       notification.notify({ canCheckIn: true });
-      const usersStillInWaiting = getUsersWhoStillInWaiting(usersInWaiting);
+      notification.detachAll();
+      addObserversWhoStillInWaiting(usersInWaiting, notification);
+      notification.notify(undefined, sendUpdatedWaitingPosition);
+      notification.detachAll();
 
       // Usage Example
 

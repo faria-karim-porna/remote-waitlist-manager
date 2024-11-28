@@ -106,8 +106,8 @@ class Notification {
             this.observers.forEach((observer) => observer.update(data));
         }
         else if (func) {
-            this.observers.forEach((observer) => {
-                observer.update(undefined, () => func === null || func === void 0 ? void 0 : func(observer === null || observer === void 0 ? void 0 : observer.getObserver));
+            this.observers.forEach((observer, index) => {
+                observer.update(undefined, () => func === null || func === void 0 ? void 0 : func(observer === null || observer === void 0 ? void 0 : observer.getObserver, index));
             });
         }
     }
@@ -144,11 +144,12 @@ const addObserversWhoCanCheckInNow = (users, notification, remainingSeatsCount) 
         }
     }
 };
-const getUsersWhoStillInWaiting = (users) => {
+const addObserversWhoStillInWaiting = (users, notification) => {
     const usersStillInWaiting = [];
     for (let index = 0; index < users.length; index++) {
         if (users[index].status === EnumStatus.InWaitingList && users[index].canCheckIn === false) {
-            usersStillInWaiting.push(users[index]);
+            const observer = new UsersObserver(users[index]);
+            notification.attach(observer);
         }
     }
     return usersStillInWaiting;
@@ -235,6 +236,14 @@ const calculateCount = (users, type) => {
     }
     return usersOrSeatsCount;
 };
+const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    user.canCheckIn = true;
+    yield user.save();
+});
+const sendUpdatedWaitingPosition = (user, index) => __awaiter(void 0, void 0, void 0, function* () {
+    const name = user.name;
+    sendNotification(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
+});
 const runServiceSchedule = (name, partySize) => {
     const totalSeatsCount = 10;
     const serviceTimePerPersonInMilliSec = 3000;
@@ -254,14 +263,12 @@ const runServiceSchedule = (name, partySize) => {
             notification.notify({ status: EnumStatus.ServiceCompleted });
             notification.detachAll();
             addObserversWhoCanCheckInNow(usersInWaiting, notification, remainingSeatsCount);
-            const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
-                user.canCheckIn = true;
-                console.log("user", user);
-                yield user.save();
-            });
             notification.notify(undefined, updateCanCheckIn);
             notification.notify({ canCheckIn: true });
-            const usersStillInWaiting = getUsersWhoStillInWaiting(usersInWaiting);
+            notification.detachAll();
+            addObserversWhoStillInWaiting(usersInWaiting, notification);
+            notification.notify(undefined, sendUpdatedWaitingPosition);
+            notification.detachAll();
             // Usage Example
             // const observer2 = new UsersObserver("Observer 2");
             // notification.attach(observer2);
