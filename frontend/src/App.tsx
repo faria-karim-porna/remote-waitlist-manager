@@ -1,21 +1,9 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import { EnumStatus } from "./components/core/dataTypes/enums/userEnum";
+import { User } from "./components/core/dataTypes/types/userType";
 
-enum EnumStatus {
-  None = "None",
-  SeatIn = "Seat In",
-  InWaitingList = "In Waiting List",
-  ServiceCompleted = "Service Completed",
-}
-
-type User = {
-  name?: string;
-  partySize?: number;
-  status?: EnumStatus;
-  canCheckIn?: boolean;
-  waitingPosition?: number;
-};
 
 const App: React.FC = () => {
   const setUserInSessionStorage = (name: string) => {
