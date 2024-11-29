@@ -21,17 +21,17 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.getUser = exports.checkInUser = exports.joinUser = void 0;
-const usersModel_1 = require("../models/usersModel");
-const countHelper_1 = require("../helpers/countHelper");
+const countOrPositionHelper_1 = require("../helpers/countOrPositionHelper");
 const enums_1 = require("../dataTypes/enums");
 const scheduleService_1 = require("../services.ts/scheduleService");
+const userRepository_1 = require("../repositories/userRepository");
 const joinUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const totalSeatsCount = 10;
     const { name, partySize } = req.body;
-    const allUserInfo = yield usersModel_1.UsersList.find();
-    const bookedSeatsCount = (0, countHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.BookedSeats);
-    const canCheckInSeatsCount = (0, countHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.CanCheckInSeats);
-    const usersInWaitingListCount = (0, countHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.UsersInWaiting);
+    const allUserInfo = yield userRepository_1.UserRepository.findAll();
+    const bookedSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.BookedSeats);
+    const canCheckInSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.CanCheckInSeats);
+    const usersInWaitingListCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.UsersInWaiting);
     const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
     const isSeatAvailable = partySize <= availableSeatsCount;
     const isNoUserInWaiting = usersInWaitingListCount === 0;
@@ -42,17 +42,15 @@ const joinUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const canSeatIn = isSeatAvailable && isNoUserInWaiting;
     if (canSeatIn) {
         newUser = Object.assign(Object.assign({}, newUser), { status: enums_1.EnumStatus.SeatIn });
-        const newUserEntry = new usersModel_1.UsersList(Object.assign({}, newUser));
-        yield newUserEntry.save();
+        yield userRepository_1.UserRepository.createUser(newUser);
         res.status(201).json({ message: "New user has been added", user: newUser });
         (0, scheduleService_1.runScheduleService)(name, partySize);
     }
     else {
-        const waitingListLastPosition = (yield usersModel_1.UsersList.find({ status: enums_1.EnumStatus.InWaitingList, canCheckIn: false })).length;
+        const waitingListLastPosition = (yield userRepository_1.UserRepository.findByData({ status: enums_1.EnumStatus.InWaitingList, canCheckIn: false })).length;
         newUser = Object.assign(Object.assign({}, newUser), { status: enums_1.EnumStatus.InWaitingList, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 });
         const { waitingPosition } = newUser, userWithoutPosition = __rest(newUser, ["waitingPosition"]);
-        const newUserEntry = new usersModel_1.UsersList(Object.assign({}, userWithoutPosition));
-        yield newUserEntry.save();
+        yield userRepository_1.UserRepository.createUser(userWithoutPosition);
         res.status(201).json({ message: "New user has been added", user: newUser });
     }
 });
@@ -60,10 +58,10 @@ exports.joinUser = joinUser;
 const checkInUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { name } = req.body;
-    const user = yield usersModel_1.UsersList.findOne({ name: name });
+    const user = yield userRepository_1.UserRepository.findByName(name);
     if (user) {
         user.status = enums_1.EnumStatus.SeatIn;
-        yield user.save();
+        yield userRepository_1.UserRepository.updateUser(user);
         res.status(200).send({ message: "User has checked in", user: user });
         (0, scheduleService_1.runScheduleService)(name, (_a = user.partySize) !== null && _a !== void 0 ? _a : 0);
     }
@@ -75,7 +73,7 @@ exports.checkInUser = checkInUser;
 const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.params;
     try {
-        const allUsersInfo = yield usersModel_1.UsersList.find();
+        const allUsersInfo = yield userRepository_1.UserRepository.findAll();
         let user = {};
         let waitingPosition = 0;
         for (let index = 0; index < allUsersInfo.length; index++) {
@@ -102,7 +100,7 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.getUser = getUser;
 const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.body;
-    const user = yield usersModel_1.UsersList.deleteOne({ name: name });
+    const user = yield userRepository_1.UserRepository.deleteUserByName(name);
     if (user) {
         res.status(200).send({ message: "User has been deleted" });
     }

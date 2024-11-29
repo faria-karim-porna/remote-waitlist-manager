@@ -1,5 +1,5 @@
 import { EnumCount, EnumNotificationUser, EnumStatus } from "../dataTypes/enums";
-import { calculateCount } from "../helpers/countHelper";
+import { calculateCount } from "../helpers/countOrPositionHelper";
 import { notificationService } from "../helpers/notificationHelper";
 import { UsersList } from "../models/usersModel";
 import { Notification } from "../observers/notificationObserver";

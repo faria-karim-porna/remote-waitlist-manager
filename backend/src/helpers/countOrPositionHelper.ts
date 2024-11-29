@@ -1,5 +1,6 @@
 import { EnumCount, EnumStatus } from "../dataTypes/enums";
 import { IUser } from "../dataTypes/interfaces";
+import { UserRepository } from "../repositories/userRepository";
 
 const calculateBookedSeatsCount = (allUsers: IUser[]) => {
   let currentBookedSeatsCount = 0;
@@ -30,6 +31,10 @@ const calculateUsersInWaitingListCount = (allUsers: IUser[]) => {
   }
   return usersInWaitingListCount;
 };
+
+// const getUserWaitingPositionByName = async(name: string) => {
+//   const allUsersInfo = await UserRepository.findByData();
+// };
 
 export const calculateCount = (users: IUser[], type: EnumCount) => {
   let usersOrSeatsCount = 0;

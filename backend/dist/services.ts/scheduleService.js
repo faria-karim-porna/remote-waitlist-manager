@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runScheduleService = void 0;
 const enums_1 = require("../dataTypes/enums");
-const countHelper_1 = require("../helpers/countHelper");
+const countOrPositionHelper_1 = require("../helpers/countOrPositionHelper");
 const notificationHelper_1 = require("../helpers/notificationHelper");
 const usersModel_1 = require("../models/usersModel");
 const notificationObserver_1 = require("../observers/notificationObserver");
@@ -24,8 +24,8 @@ const runScheduleService = (name, partySize) => {
             user.status = enums_1.EnumStatus.ServiceCompleted;
             yield user.save();
             const allUsers = yield usersModel_1.UsersList.find();
-            const currentBookedSeatsCount = (0, countHelper_1.calculateCount)(allUsers, enums_1.EnumCount.BookedSeats);
-            const currentCanCheckInSeatsCount = (0, countHelper_1.calculateCount)(allUsers, enums_1.EnumCount.CanCheckInSeats);
+            const currentBookedSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUsers, enums_1.EnumCount.BookedSeats);
+            const currentCanCheckInSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUsers, enums_1.EnumCount.CanCheckInSeats);
             const remainingSeatsCount = totalSeatsCount - (currentBookedSeatsCount + currentCanCheckInSeatsCount);
             const usersInWaiting = yield usersModel_1.UsersList.find({ status: enums_1.EnumStatus.InWaitingList, canCheckIn: false });
             const notification = new notificationObserver_1.Notification();

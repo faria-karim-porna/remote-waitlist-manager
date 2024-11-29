@@ -1,15 +1,15 @@
 import { Request, Response } from "express";
-import { UsersList } from "../models/usersModel";
-import { calculateCount } from "../helpers/countHelper";
+import { calculateCount } from "../helpers/countOrPositionHelper";
 import { EnumCount, EnumStatus } from "../dataTypes/enums";
 import { User } from "../dataTypes/types";
 import { runScheduleService } from "../services.ts/scheduleService";
+import { UserRepository } from "../repositories/userRepository";
 
 const joinUser = async (req: Request, res: Response) => {
   const totalSeatsCount = 10;
   const { name, partySize }: { name: string; partySize: number } = req.body;
 
-  const allUserInfo = await UsersList.find();
+  const allUserInfo = await UserRepository.findAll();
 
   const bookedSeatsCount = calculateCount(allUserInfo, EnumCount.BookedSeats);
   const canCheckInSeatsCount = calculateCount(allUserInfo, EnumCount.CanCheckInSeats);
@@ -25,26 +25,24 @@ const joinUser = async (req: Request, res: Response) => {
   const canSeatIn = isSeatAvailable && isNoUserInWaiting;
   if (canSeatIn) {
     newUser = { ...newUser, status: EnumStatus.SeatIn };
-    const newUserEntry = new UsersList({ ...newUser });
-    await newUserEntry.save();
+    await UserRepository.createUser(newUser);
     res.status(201).json({ message: "New user has been added", user: newUser });
     runScheduleService(name, partySize);
   } else {
-    const waitingListLastPosition = (await UsersList.find({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
+    const waitingListLastPosition = (await UserRepository.findByData({ status: EnumStatus.InWaitingList, canCheckIn: false })).length;
     newUser = { ...newUser, status: EnumStatus.InWaitingList, canCheckIn: false, waitingPosition: waitingListLastPosition + 1 };
     const { waitingPosition, ...userWithoutPosition } = newUser;
-    const newUserEntry = new UsersList({ ...userWithoutPosition });
-    await newUserEntry.save();
+    await UserRepository.createUser(userWithoutPosition);
     res.status(201).json({ message: "New user has been added", user: newUser });
   }
 };
 
 const checkInUser = async (req: Request, res: Response) => {
   const { name } = req.body;
-  const user = await UsersList.findOne({ name: name });
+  const user = await UserRepository.findByName(name);
   if (user) {
     user.status = EnumStatus.SeatIn;
-    await user.save();
+    await UserRepository.updateUser(user);
     res.status(200).send({ message: "User has checked in", user: user });
     runScheduleService(name, user.partySize ?? 0);
   } else {
@@ -56,7 +54,7 @@ const getUser = async (req: Request<{ name: string }>, res: Response): Promise<a
   const { name } = req.params;
 
   try {
-    const allUsersInfo = await UsersList.find();
+    const allUsersInfo = await UserRepository.findAll();
     let user: User = {};
     let waitingPosition = 0;
 
@@ -85,7 +83,7 @@ const getUser = async (req: Request<{ name: string }>, res: Response): Promise<a
 
 const deleteUser = async (req: Request, res: Response) => {
   const { name } = req.body;
-  const user = await UsersList.deleteOne({ name: name });
+  const user = await UserRepository.deleteUserByName(name);
   if (user) {
     res.status(200).send({ message: "User has been deleted" });
   } else {
