@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { calculateCount } from "../helpers/countOrPositionHelper";
+import { calculateCount, getUserWaitingPositionByName } from "../helpers/countOrPositionHelper";
 import { EnumCount, EnumStatus } from "../dataTypes/enums";
 import { User } from "../dataTypes/types";
 import { runScheduleService } from "../services.ts/scheduleService";
@@ -52,25 +52,14 @@ const checkInUser = async (req: Request, res: Response) => {
 
 const getUser = async (req: Request<{ name: string }>, res: Response): Promise<any> => {
   const { name } = req.params;
-
   try {
-    const allUsersInfo = await UserRepository.findAll();
+    const userInfo = await UserRepository.findByName(name);
     let user: User = {};
-    let waitingPosition = 0;
-
-    for (let index = 0; index < allUsersInfo.length; index++) {
-      if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
-        waitingPosition = waitingPosition + 1;
-      }
-      if (allUsersInfo[index].name === name) {
-        user = allUsersInfo[index].toObject() as User;
-        if (allUsersInfo[index].status === EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
-          user = { ...user, waitingPosition: waitingPosition };
-        }
-        break;
-      }
+    if (userInfo) {
+      user = userInfo.toObject() as User;
     }
-
+    const waitingPosition = await getUserWaitingPositionByName(name);
+    user = { ...user, waitingPosition: waitingPosition };
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

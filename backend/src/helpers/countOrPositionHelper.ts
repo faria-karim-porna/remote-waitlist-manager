@@ -32,9 +32,12 @@ const calculateUsersInWaitingListCount = (allUsers: IUser[]) => {
   return usersInWaitingListCount;
 };
 
-// const getUserWaitingPositionByName = async(name: string) => {
-//   const allUsersInfo = await UserRepository.findByData();
-// };
+export const getUserWaitingPositionByName = async (name: string) => {
+  const usersInWaitingList = await UserRepository.findByData({ status: EnumStatus.InWaitingList, canCheckIn: false });
+  const userIndex = usersInWaitingList.findIndex((user) => user.name === name);
+  const waitingListPosition = userIndex + 1;
+  return waitingListPosition;
+};
 
 export const calculateCount = (users: IUser[], type: EnumCount) => {
   let usersOrSeatsCount = 0;

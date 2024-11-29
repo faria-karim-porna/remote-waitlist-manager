@@ -73,21 +73,13 @@ exports.checkInUser = checkInUser;
 const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.params;
     try {
-        const allUsersInfo = yield userRepository_1.UserRepository.findAll();
+        const userInfo = yield userRepository_1.UserRepository.findByName(name);
         let user = {};
-        let waitingPosition = 0;
-        for (let index = 0; index < allUsersInfo.length; index++) {
-            if (allUsersInfo[index].status === enums_1.EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
-                waitingPosition = waitingPosition + 1;
-            }
-            if (allUsersInfo[index].name === name) {
-                user = allUsersInfo[index].toObject();
-                if (allUsersInfo[index].status === enums_1.EnumStatus.InWaitingList && allUsersInfo[index].canCheckIn === false) {
-                    user = Object.assign(Object.assign({}, user), { waitingPosition: waitingPosition });
-                }
-                break;
-            }
+        if (userInfo) {
+            user = userInfo.toObject();
         }
+        const waitingPosition = yield (0, countOrPositionHelper_1.getUserWaitingPositionByName)(name);
+        user = Object.assign(Object.assign({}, user), { waitingPosition: waitingPosition });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
