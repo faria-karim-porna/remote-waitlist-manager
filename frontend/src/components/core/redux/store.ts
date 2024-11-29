@@ -1,10 +1,11 @@
 import { AnyAction, combineReducers, configureStore } from "@reduxjs/toolkit";
 import { createSelectorHook, TypedUseSelectorHook, useDispatch } from "react-redux";
 import { UserReducer } from "./slices/userSlice";
-
+import { UserApiReducer } from "./apiSlices/userApiSlice";
 
 const RootReducer = combineReducers({
   user: UserReducer,
+  userApi: UserApiReducer,
 });
 
 const ActionAppTypeResetStore = "RESET_APP_REDUX_STORE";

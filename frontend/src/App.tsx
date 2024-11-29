@@ -1,11 +1,20 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { EnumStatus } from "./components/core/dataTypes/enums/userEnum";
 import { User } from "./components/core/dataTypes/types/userType";
-
+import { useAppDispatch, useAppSelector } from "./components/core/redux/store";
+import { fetchUser } from "./components/core/redux/apiSlices/userApiSlice";
+import { unwrapResult } from "@reduxjs/toolkit";
+import { shallowEqual } from "react-redux";
 
 const App: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const store = useAppSelector(
+    (state) => ({
+      isBusy: state.userApi.userFetch.isBusy,
+    }),
+    shallowEqual
+  );
   const setUserInSessionStorage = (name: string) => {
     sessionStorage.setItem("user", name);
   };
@@ -23,17 +32,20 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User>({});
   const [isSocketReady, setIsSocketReady] = useState(false);
 
-  const fetchUser = async (userName: string) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
-      setUser(response.data.user);
-    } catch {
-      setUser({});
-    }
-  };
+  // const fetchUser = async (userName: string) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
+  //     setUser(response.data.user);
+  //   } catch {
+  //     setUser({});
+  //   }
+  // };
 
   useEffect(() => {
     const userName = getUserFromSessionStorage();
+    dispatch(fetchUser(userName))
+      .then(unwrapResult)
+      .then((response) => setUser(response.data.user));
     fetchUser(userName);
   }, []);
 
@@ -106,7 +118,9 @@ const App: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Restaurant Waitlist</h1>
-      {!user.name ? (
+      {store.isBusy ? (
+        <div>Loading...</div>
+      ) : !user.name ? (
         <>
           <input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
           <input type="number" min="1" placeholder="Party size" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} />
