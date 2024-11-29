@@ -18,16 +18,16 @@ type User = {
 };
 
 const App: React.FC = () => {
-  const setUserInLocalStorage = (name: string) => {
-    localStorage.setItem("user", name);
+  const setUserInSessionStorage = (name: string) => {
+    sessionStorage.setItem("user", name);
   };
-  const getUserFromLocalStorage = () => {
-    const storedUser = localStorage.getItem("user") ?? "";
+  const getUserFromSessionStorage = () => {
+    const storedUser = sessionStorage.getItem("user") ?? "";
     return storedUser;
   };
 
-  const clearLocalStorage = () => {
-    localStorage.clear();
+  const clearSessionStorage = () => {
+    sessionStorage.clear();
   };
 
   const [name, setName] = useState("");
@@ -45,7 +45,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const userName = getUserFromLocalStorage();
+    const userName = getUserFromSessionStorage();
     fetchUser(userName);
   }, []);
 
@@ -82,7 +82,7 @@ const App: React.FC = () => {
       .then((data) => {
         if (data.user) {
           setUser(data.user);
-          setUserInLocalStorage(name);
+          setUserInSessionStorage(name);
         }
       });
   };
@@ -110,7 +110,7 @@ const App: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
-          clearLocalStorage();
+          clearSessionStorage();
           setUser({});
         }
       });
