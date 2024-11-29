@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersObserver = exports.Notification = void 0;
-const server_1 = require("../server");
+const notificationHelper_1 = require("../helpers/notificationHelper");
 class Notification {
     constructor() {
         this.observers = [];
@@ -40,7 +40,7 @@ class UsersObserver {
     update(data, func) {
         var _a;
         if (data) {
-            (0, server_1.sendNotification)((_a = this.user.name) !== null && _a !== void 0 ? _a : "", data);
+            (0, notificationHelper_1.sendNotification)((_a = this.user.name) !== null && _a !== void 0 ? _a : "", data);
         }
         else {
             func === null || func === void 0 ? void 0 : func();

@@ -9,10 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.notificationService = exports.sendUpdatedWaitingPosition = exports.updateCanCheckIn = void 0;
+exports.notificationService = exports.sendUpdatedWaitingPosition = exports.updateCanCheckIn = exports.sendNotification = void 0;
+const socket_1 = require("../config/socket");
 const enums_1 = require("../dataTypes/enums");
 const notificationProcessor_1 = require("../processors/notificationProcessor");
-const server_1 = require("../server");
+const sendNotification = (name, data) => {
+    const io = socket_1.SocketSingleton.getInstance();
+    io.to(name !== null && name !== void 0 ? name : "").emit("notification", data);
+};
+exports.sendNotification = sendNotification;
 const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* () {
     user.canCheckIn = true;
     yield user.save();
@@ -20,7 +25,7 @@ const updateCanCheckIn = (user) => __awaiter(void 0, void 0, void 0, function* (
 exports.updateCanCheckIn = updateCanCheckIn;
 const sendUpdatedWaitingPosition = (user, index) => __awaiter(void 0, void 0, void 0, function* () {
     const name = user.name;
-    (0, server_1.sendNotification)(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
+    (0, exports.sendNotification)(name !== null && name !== void 0 ? name : "", { waitingPosition: (index !== null && index !== void 0 ? index : 0) + 1 });
 });
 exports.sendUpdatedWaitingPosition = sendUpdatedWaitingPosition;
 const notificationService = (userType, users, notification, remainingSeatsCount) => {

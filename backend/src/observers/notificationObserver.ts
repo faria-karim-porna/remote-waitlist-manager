@@ -1,5 +1,5 @@
 import { IUser } from "../dataTypes/interfaces";
-import { sendNotification } from "../server";
+import { sendNotification } from "../helpers/notificationHelper";
 import { Observer, Subject } from "./observer";
 
 export class Notification implements Subject<Partial<IUser>> {

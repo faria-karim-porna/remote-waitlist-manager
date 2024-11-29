@@ -1,3 +1,4 @@
+import { SocketSingleton } from "../config/socket";
 import { EnumNotificationUser } from "../dataTypes/enums";
 import { IUser } from "../dataTypes/interfaces";
 import { Notification } from "../observers/notificationObserver";
@@ -6,7 +7,11 @@ import {
   SelfNotificationProcessor,
   StillInWaitingNotificationProcessor,
 } from "../processors/notificationProcessor";
-import { sendNotification } from "../server";
+
+export const sendNotification = (name: string, data: Partial<IUser>) => {
+  const io = SocketSingleton.getInstance();
+  io.to(name ?? "").emit("notification", data);
+};
 
 export const updateCanCheckIn = async (user: IUser) => {
   user.canCheckIn = true;
