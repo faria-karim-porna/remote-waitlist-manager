@@ -10,6 +10,7 @@ import { WaitListFormView } from "./components/views/waitListFormView";
 import { clearSessionStorage, getUserFromSessionStorage } from "./components/storages/localStorage";
 import { UserAction } from "./components/core/redux/slices/userSlice";
 import { Header } from "./components/common/header";
+import { DineInView } from "./components/views/dineInView";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -91,8 +92,8 @@ const App: React.FC = () => {
   };
   return (
     <div>
-      <Header />
-      {store.isBusy ? (
+      {/* <Header /> */}
+      {/* {store.isBusy ? (
         <div>Loading...</div>
       ) : !store.user?.name ? (
         <WaitListFormView />
@@ -107,7 +108,9 @@ const App: React.FC = () => {
           <div>Thank You For Coming</div>
           <button onClick={() => handleJoinAgain(store.user?.name ?? "")}>Join Again</button>
         </div>
-      ) : null}
+      ) : null} */}
+      {/* <WaitListFormView /> */}
+      <DineInView />
     </div>
   );
 };

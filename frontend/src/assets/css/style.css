@@ -10,6 +10,7 @@ html {
 
 .header {
   height: 72px;
+  background-color: #5b11a665;
 }
 
 .logo {
@@ -23,18 +24,23 @@ html {
   font-weight: bold;
   margin: 0 auto;
   text-align: center;
+  color: white;
 }
 
-.waitlist-form-view-main{
+.waitlist-form-view-main {
   position: relative;
   top: 25%;
 }
 
-.waitlist-form-view {
-  background-image: url(../images/formViewBg.png);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+.dine-in-view-main {
+  position: relative;
+  top: 25%;
+}
+
+.bg-photo {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
   height: 100%;
   width: 100%;
   position: fixed;
@@ -63,9 +69,23 @@ html {
   border-bottom: none;
 }
 
-.waitlist-form-input:focus{
+.waitlist-form-input:focus {
   outline: 1px solid #5c11a6;
   border: 1px solid #5c11a6;
+}
+
+.dine-in-view-title {
+  font-size: 70px;
+  line-height: 140px;
+  /* line-height: 50px; */
+  font-weight: bold;
+  color: white;
+}
+
+.dine-in-view-subtitle {
+  font-size: 22px;
+  line-height: 35px;
+  color: white;
 }
 
 .square-button {
@@ -75,4 +95,19 @@ html {
   height: 60px;
   font-size: 22px;
   font-weight: 500;
+}
+
+.logoSvg {
+  height: 20px;
+}
+
+.w-40 {
+  width: 40%;
+}
+
+.st0 {
+  fill: white;
+}
+.st1 {
+  fill: white;
 }
