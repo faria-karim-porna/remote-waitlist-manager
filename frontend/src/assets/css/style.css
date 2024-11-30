@@ -1,2 +1,41 @@
 @import "../../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 /* @import "../../../node_modules/bootstrap/dist/js/bootstrap.bundle"; */
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.header {
+  height: 72px;
+}
+
+.logo {
+  height: 21px;
+  position: absolute;
+  left: 0;
+}
+
+.app-name {
+  font-size: 30px;
+  font-weight: bold;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.waitlist-form-view {
+  background-image: url(../images/formViewCoverPhoto.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+}
+
+button {
+  background-color: #5c11a6;
+  color: white;
+}

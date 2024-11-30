@@ -9,6 +9,7 @@ import { shallowEqual } from "react-redux";
 import { WaitListFormView } from "./components/views/waitListFormView";
 import { clearSessionStorage, getUserFromSessionStorage } from "./components/storages/localStorage";
 import { UserAction } from "./components/core/redux/slices/userSlice";
+import { Header } from "./components/common/header";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -89,8 +90,8 @@ const App: React.FC = () => {
       });
   };
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Restaurant Waitlist</h1>
+    <div>
+      <Header />
       {store.isBusy ? (
         <div>Loading...</div>
       ) : !store.user?.name ? (

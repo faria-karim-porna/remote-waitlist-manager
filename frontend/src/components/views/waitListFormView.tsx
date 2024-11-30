@@ -24,11 +24,14 @@ const WaitListFormViewComponent = () => {
       });
   };
   return (
-    <>
-      <input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
-      <input type="number" min="1" placeholder="Party size" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} />
-      <button onClick={() => handleJoin()}>Submit</button>
-    </>
+    <div className="waitlist-form-view">
+      <div className="d-flex flex-column align-items-center">
+        <label>Enter Your Name</label>
+        <input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input type="number" min="1" placeholder="Party size" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} />
+        <button onClick={() => handleJoin()}>Submit</button>
+      </div>
+    </div>
   );
 };
 
