@@ -11,6 +11,7 @@ import { clearSessionStorage, getUserFromSessionStorage } from "./components/sto
 import { UserAction } from "./components/core/redux/slices/userSlice";
 import { Header } from "./components/common/header";
 import { DineInView } from "./components/views/dineInView";
+import { RejoinView } from "./components/views/rejoinView";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -76,20 +77,6 @@ const App: React.FC = () => {
       });
   };
 
-  const handleJoinAgain = (name: string) => {
-    fetch("http://localhost:5000/api/deleteUser", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.message) {
-          clearSessionStorage();
-          dispatch(UserAction.removeUserInfo());
-        }
-      });
-  };
   return (
     <div>
       {/* <Header /> */}
@@ -110,7 +97,8 @@ const App: React.FC = () => {
         </div>
       ) : null} */}
       {/* <WaitListFormView /> */}
-      <DineInView />
+      {/* <DineInView /> */}
+      <RejoinView />
     </div>
   );
 };
