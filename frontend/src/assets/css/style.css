@@ -25,7 +25,17 @@ html {
   text-align: center;
 }
 
-.waitlist-form-view {
+.waitlist-form-cover-photo {
+  height: calc(100vh - 70px);
+  /* width: 500px; */
+}
+
+.waitlist-form-container {
+  width: -webkit-fill-available;
+  mask-image: linear-gradient(90deg, transparent, #D4D6D7 20%, transparent 80%, red);
+}
+
+/* .waitlist-form-view {
   background-image: url(../images/formViewCoverPhoto.jpg);
   background-size: cover;
   background-position: center;
@@ -33,7 +43,7 @@ html {
   height: 100%;
   width: 100%;
   position: fixed;
-}
+} */
 
 button {
   background-color: #5c11a6;
