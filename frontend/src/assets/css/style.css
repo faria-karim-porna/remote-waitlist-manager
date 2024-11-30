@@ -95,7 +95,7 @@ html {
   font-weight: 500;
   /* padding: 0px 20px 0px 20px; */
 }
-.oval-button{
+.oval-button {
   background-color: white;
   border: none;
   border-radius: 50px;
@@ -119,4 +119,111 @@ html {
 }
 .st1 {
   fill: white;
+}
+
+.waitlist-view {
+  background-image: linear-gradient(280deg, #68007a 6%, #1f053d 84%);
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+}
+
+.cls-1 {
+  fill: #f7d147;
+  opacity: 0.5;
+}
+.cls-2 {
+  fill: #fff;
+}
+.cls-3 {
+  fill: #fda968;
+}
+.cls-4 {
+  fill: #0e708b;
+}
+.cls-5 {
+  fill: #feed9b;
+}
+.cls-6 {
+  fill: #1d8daa;
+}
+.cls-7 {
+  fill: #07536a;
+}
+.cls-8 {
+  fill: #033a49;
+}
+.cls-9 {
+  fill: #7935d2;
+}
+.cls-10 {
+  fill: #032877;
+}
+.cls-11,
+.cls-12 {
+  fill: none;
+  stroke-miterlimit: 10;
+  stroke-width: 2px;
+}
+.cls-11 {
+  stroke: #e4e4e4;
+}
+.cls-12 {
+  stroke: #939393;
+}
+
+.overlay {
+  background-color: #5b11a68a;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+}
+
+.small-user-svg {
+  fill: #000000;
+  height: 50px;
+  width: 50px;
+}
+
+.user-svg {
+  fill: #5c11a6;
+  height: 70px;
+  width: 70px;
+}
+
+.food-svg {
+  fill: #5c11a6;
+  height: 100px;
+  width: 100px;
+}
+
+.w-80 {
+  width: 80%;
+}
+
+.wait-list-view-subtitle {
+  font-size: 25px;
+  color: #5c11a6;
+  font-weight: 500;
+  text-align: center;
+  padding: 0px 10px 0px 10px;
+}
+
+.wait-list-view-small-text{
+  font-size: 22px;
+  margin-top: 10px;
+}
+
+.waitlist-view-main{
+  height: 250px;
+}
+
+.style-text{
+  color: #5c11a6;
+  font-size: 22px;
+  font-weight: 500;
 }

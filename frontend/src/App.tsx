@@ -12,6 +12,7 @@ import { UserAction } from "./components/core/redux/slices/userSlice";
 import { Header } from "./components/common/header";
 import { DineInView } from "./components/views/dineInView";
 import { RejoinView } from "./components/views/rejoinView";
+import { WaitListView } from "./components/views/waitListView";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -25,21 +26,12 @@ const App: React.FC = () => {
 
   const [isSocketReady, setIsSocketReady] = useState(false);
 
-  // const fetchUser = async (userName: string) => {
-  //   try {
-  //     const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
-  //     setUser(response.data.user);
-  //   } catch {
-  //     setUser({});
-  //   }
-  // };
 
   useEffect(() => {
     const userName = getUserFromSessionStorage();
     dispatch(fetchUser(userName))
       .then(unwrapResult)
       .then((response) => dispatch(UserAction.setUserInfo(response.data.user)));
-    fetchUser(userName);
   }, []);
 
   useEffect(() => {
@@ -63,19 +55,7 @@ const App: React.FC = () => {
     };
   }, [store.user]);
 
-  const handleCheckIn = (name: string) => {
-    fetch("http://localhost:5000/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          dispatch(UserAction.setUserInfo(data.user));
-        }
-      });
-  };
+
 
   return (
     <div>
@@ -98,7 +78,8 @@ const App: React.FC = () => {
       ) : null} */}
       {/* <WaitListFormView /> */}
       {/* <DineInView /> */}
-      <RejoinView />
+      {/* <RejoinView /> */}
+      <WaitListView />
     </div>
   );
 };
