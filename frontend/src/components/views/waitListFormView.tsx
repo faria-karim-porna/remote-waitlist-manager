@@ -2,40 +2,65 @@ import React, { useState } from "react";
 import { setUserInSessionStorage } from "../storages/localStorage";
 import { UserAction } from "../core/redux/slices/userSlice";
 import { useAppDispatch } from "../core/redux/store";
-import cover1 from "../../assets/images/formViewCover1.png";
-import cover2 from "../../assets/images/formViewCover2.jpg";
+import { joinUser } from "../core/redux/apiSlices/userApiSlice";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 const WaitListFormViewComponent = () => {
   const dispatch = useAppDispatch();
   const [name, setName] = useState("");
-  const [partySize, setPartySize] = useState(1);
+  const [partySize, setPartySize] = useState<string>("");
   const handleJoin = () => {
-    fetch("http://localhost:5000/api/join", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, partySize }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          dispatch(UserAction.setUserInfo(data.user));
+    dispatch(joinUser({ name: name, partySize: Number(partySize) }))
+      .then(unwrapResult)
+      .then((response) => {
+        if (response) {
+          dispatch(UserAction.setUserInfo(response));
           setUserInSessionStorage(name);
         }
       });
   };
   return (
-    <div className="waitlist-form-view">
-      <div className="d-flex justify-content-between">
-        <img src={cover1} className="waitlist-form-cover-photo" />
-        <div className="waitlist-form-container">
-          <label>Enter Your Name</label>
-          <input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input type="number" min="1" placeholder="Party size" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} />
-          <button onClick={() => handleJoin()}>Submit</button>
+    <div className="waitlist-form-view d-flex justify-content-center">
+      <div className="w-75">
+        <div className="w-50 waitlist-form-view-main">
+          <div>
+            <div className="wait-list-form-title">Book amazing restaurants</div>
+            <div className="my-4">
+              <div className="waitlist-form-subtitle">
+                From local favorites to the trending restaurants, enjoy without the wait. Discover popular restaurants where you can skip
+                the wait by booking through TableCheck.
+              </div>
+            </div>
+          </div>
+          <div className="waitlist-form">
+            <div>
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="waitlist-form-input"
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                placeholder="Party size"
+                value={partySize}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "" || /^[0-9]+$/.test(value)) {
+                    setPartySize(value);
+                  }
+                }}
+                className="waitlist-form-input"
+              />
+            </div>
+            <button onClick={() => handleJoin()} className="square-button">
+              Submit
+            </button>
+          </div>
         </div>
-        <img src={cover2} className="waitlist-form-cover-photo" />
       </div>
     </div>
   );
