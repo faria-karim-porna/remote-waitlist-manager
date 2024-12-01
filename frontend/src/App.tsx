@@ -55,8 +55,8 @@ const App: React.FC = () => {
       ) : null} */}
       <Header />
       {/* <FormView /> */}
-      <DineInView />
-      {/* <RejoinView /> */}
+      {/* <DineInView /> */}
+      <RejoinView />
       {/* <WaitListView /> */}
     </div>
   );

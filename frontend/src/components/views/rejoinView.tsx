@@ -30,18 +30,16 @@ const RejoinViewComponent = () => {
   return (
     <BackgroundContainer imageURL={bgPhoto}>
       <div className="w-100 d-flex justify-content-center h-100">
-        <div className="w-75 h-100">
-          <div className="w-40 dine-in-view-main">
-            <div className="dine-in-view-title">Thank you for dining with us!!</div>
+        <div className="w-75 h-100 d-flex align-items-center">
+          <div className="dine-in-view-main">
+            <div className="dine-in-view-title">Thanks for dining with us!</div>
             <div className="dine-in-view-subtitle my-4">
-              We truly appreciate you choosing our restaurant, and we hope your meal was as memorable as it was delicious. It was a pleasure
-              having you here, and we look forward to welcoming you back for another unforgettable experience.
+              Thank you for choosing our restaurant! We hope your meal was delightful and look forward to welcoming you back soon.
             </div>
             <div className="dine-in-view-subtitle">
-              Would you like to join us again for another delicious meal? Simply click the button below to rejoin, and we’ll be happy to
-              reserve your spot!
+              Want to join us again for another delicious meal? Click below to rejoin, and we’ll save your spot!
             </div>
-            <div className="d-flex">
+            <div className="d-flex mt-4">
               <button onClick={() => handleJoinAgain(store.user?.name ?? "")} className="oval-button">
                 Join with us again
               </button>
