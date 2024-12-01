@@ -1,5 +1,4 @@
 import React from "react";
-import { Header } from "../common/header";
 import { DiningSvg } from "../../assets/svg/diningSvg";
 import { UserSvg } from "../../assets/svg/userSvg";
 import { FoodSvg } from "../../assets/svg/foodSvg";
@@ -7,7 +6,6 @@ import { useAppDispatch, useAppSelector } from "../core/redux/store";
 import { shallowEqual } from "react-redux";
 import { checkInUser } from "../core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
-import { UserAction } from "../core/redux/slices/userSlice";
 
 const WaitListViewComponent = () => {
   const dispatch = useAppDispatch();
@@ -30,7 +28,6 @@ const WaitListViewComponent = () => {
   };
   return (
     <div className="waitlist-view">
-      <Header />
       <div className="d-flex w-100 justify-content-center h-100 align-items-center">
         <div className="w-50 ">
           <div className="position-relative">

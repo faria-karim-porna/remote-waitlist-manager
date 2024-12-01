@@ -76,6 +76,7 @@ const App: React.FC = () => {
           <button onClick={() => handleJoinAgain(store.user?.name ?? "")}>Join Again</button>
         </div>
       ) : null} */}
+      <Header/>
       {/* <WaitListFormView /> */}
       {/* <DineInView /> */}
       {/* <RejoinView /> */}

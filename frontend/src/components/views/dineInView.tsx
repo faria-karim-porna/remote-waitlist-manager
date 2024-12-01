@@ -1,12 +1,10 @@
 import React from "react";
 import { BgImageContainer } from "../common/bgImageContainer";
 import bgPhoto from "../../assets/images/dineInBg.jpg";
-import { Header } from "../common/header";
 
 const DineInViewComponent = () => {
   return (
     <BgImageContainer imageURL={bgPhoto}>
-      <Header />
       <div className="w-100 d-flex justify-content-center h-100">
         <div className="w-75 h-100">
           <div className="w-40 dine-in-view-main">

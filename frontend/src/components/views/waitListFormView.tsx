@@ -24,7 +24,6 @@ const WaitListFormViewComponent = () => {
   };
   return (
     <BgImageContainer imageURL={bgPhoto}>
-      <Header />
       <div className="d-flex justify-content-center h-100">
         <div className="w-75">
           <div className="w-50 waitlist-form-view-main">
