@@ -1,31 +1,14 @@
-import React, { useState } from "react";
-import { setUserInSessionStorage } from "../storages/localStorage";
-import { UserAction } from "../core/redux/slices/userSlice";
-import { useAppDispatch } from "../core/redux/store";
-import { joinUser } from "../core/redux/apiSlices/userApiSlice";
-import { unwrapResult } from "@reduxjs/toolkit";
+import React from "react";
 import { BackgroundContainer } from "../common/backgroundContainer";
 import bgPhoto from "../../assets/images/formViewBg.png";
+import { FormSection } from "../formSection";
 
 const FormViewComponent = () => {
-  const dispatch = useAppDispatch();
-  const [name, setName] = useState("");
-  const [partySize, setPartySize] = useState<string>("");
-  const handleJoin = () => {
-    dispatch(joinUser({ name: name, partySize: Number(partySize) }))
-      .then(unwrapResult)
-      .then((response) => {
-        if (response) {
-          dispatch(UserAction.setUserInfo(response));
-          setUserInSessionStorage(name);
-        }
-      });
-  };
   return (
     <BackgroundContainer imageURL={bgPhoto}>
       <div className="d-flex justify-content-center h-100">
         <div className="w-75">
-          <div className="w-50 waitlist-form-view-main">
+          <div className="waitlist-form-view-main">
             <div>
               <div className="wait-list-form-title">Book amazing restaurants</div>
               <div className="my-4">
@@ -35,34 +18,7 @@ const FormViewComponent = () => {
                 </div>
               </div>
             </div>
-            <div className="waitlist-form">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="waitlist-form-input"
-                />
-              </div>
-              <div>
-                <input
-                  type="text"
-                  placeholder="Party size"
-                  value={partySize}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "" || /^[0-9]+$/.test(value)) {
-                      setPartySize(value);
-                    }
-                  }}
-                  className="waitlist-form-input"
-                />
-              </div>
-              <button onClick={() => handleJoin()} className="square-button">
-                Submit
-              </button>
-            </div>
+            <FormSection />
           </div>
         </div>
       </div>
