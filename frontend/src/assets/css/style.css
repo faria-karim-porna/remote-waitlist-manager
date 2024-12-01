@@ -21,13 +21,10 @@ html {
 
 .waitlist-form-view-main {
   width: 50%;
-  position: relative;
-  top: 25%;
 }
 
 .dine-in-view-main {
-  position: relative;
-  top: 25%;
+  width: 40%;
 }
 
 .bg-photo {
@@ -238,6 +235,22 @@ html {
     font-size: 15px;
   }
 
+  .dine-in-view-main {
+    width: 100%;
+    padding: 20px 20px 20px 20px;
+    background-color: #0000006c;
+    border-radius: 10px;
+  }
+
+  .dine-in-view-title {
+    font-size: 40px;
+  }
+
+  .dine-in-view-subtitle {
+    font-size: 17px;
+    line-height: 25px;
+  }
+
   .square-button {
     font-size: 17px;
     font-weight: 500;
@@ -262,6 +275,13 @@ html {
     width: 75%;
     padding: 20px 20px 20px 20px;
     background-color: #fff;
+    border-radius: 10px;
+  }
+
+  .dine-in-view-main {
+    width: 75%;
+    padding: 20px 20px 20px 20px;
+    background-color: #0000006c;
     border-radius: 10px;
   }
 }

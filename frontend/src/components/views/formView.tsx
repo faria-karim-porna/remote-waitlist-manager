@@ -7,7 +7,7 @@ const FormViewComponent = () => {
   return (
     <BackgroundContainer imageURL={bgPhoto}>
       <div className="d-flex justify-content-center h-100">
-        <div className="w-75">
+        <div className="w-75 d-flex align-items-center">
           <div className="waitlist-form-view-main">
             <div>
               <div className="wait-list-form-title">Book amazing restaurants</div>
