@@ -4,7 +4,7 @@ import { UserAction } from "../core/redux/slices/userSlice";
 import { useAppDispatch } from "../core/redux/store";
 import { joinUser } from "../core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
-import { BgImageContainer } from "../common/bgImageContainer";
+import { BackgroundContainer } from "../common/backgroundContainer";
 import bgPhoto from "../../assets/images/formViewBg.png";
 
 const FormViewComponent = () => {
@@ -22,7 +22,7 @@ const FormViewComponent = () => {
       });
   };
   return (
-    <BgImageContainer imageURL={bgPhoto}>
+    <BackgroundContainer imageURL={bgPhoto}>
       <div className="d-flex justify-content-center h-100">
         <div className="w-75">
           <div className="w-50 waitlist-form-view-main">
@@ -66,7 +66,7 @@ const FormViewComponent = () => {
           </div>
         </div>
       </div>
-    </BgImageContainer>
+    </BackgroundContainer>
   );
 };
 

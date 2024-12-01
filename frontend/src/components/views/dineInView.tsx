@@ -1,10 +1,10 @@
 import React from "react";
-import { BgImageContainer } from "../common/bgImageContainer";
+import { BackgroundContainer } from "../common/backgroundContainer";
 import bgPhoto from "../../assets/images/dineInBg.jpg";
 
 const DineInViewComponent = () => {
   return (
-    <BgImageContainer imageURL={bgPhoto}>
+    <BackgroundContainer imageURL={bgPhoto}>
       <div className="w-100 d-flex justify-content-center h-100">
         <div className="w-75 h-100">
           <div className="w-40 dine-in-view-main">
@@ -17,7 +17,7 @@ const DineInViewComponent = () => {
           </div>
         </div>
       </div>
-    </BgImageContainer>
+    </BackgroundContainer>
   );
 };
 

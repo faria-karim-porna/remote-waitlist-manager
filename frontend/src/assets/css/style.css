@@ -120,16 +120,6 @@ html {
   fill: white;
 }
 
-.waitlist-view {
-  background-image: linear-gradient(280deg, #68007a 6%, #1f053d 84%);
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  height: 100%;
-  width: 100%;
-  position: fixed;
-}
-
 .cls-1 {
   fill: #f7d147;
   opacity: 0.5;

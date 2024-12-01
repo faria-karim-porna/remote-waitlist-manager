@@ -54,10 +54,10 @@ const App: React.FC = () => {
         </div>
       ) : null} */}
       <Header />
-      <FormView />
+      {/* <FormView /> */}
       {/* <DineInView /> */}
       {/* <RejoinView /> */}
-      {/* <WaitListView /> */}
+      <WaitListView />
     </div>
   );
 };

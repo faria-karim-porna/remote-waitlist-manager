@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "../core/redux/store";
 import { shallowEqual } from "react-redux";
 import { checkInUser } from "../core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
+import { BackgroundContainer } from "../common/backgroundContainer";
 
 const WaitListViewComponent = () => {
   const dispatch = useAppDispatch();
@@ -27,7 +28,7 @@ const WaitListViewComponent = () => {
       });
   };
   return (
-    <div className="waitlist-view">
+    <BackgroundContainer gradientColor={"280deg, #68007a 6%, #1f053d 84%"}>
       <div className="d-flex w-100 justify-content-center h-100 align-items-center">
         <div className="w-50 ">
           <div className="position-relative">
@@ -76,7 +77,7 @@ const WaitListViewComponent = () => {
           </div>
         </div>
       </div>
-    </div>
+    </BackgroundContainer>
   );
 };
 

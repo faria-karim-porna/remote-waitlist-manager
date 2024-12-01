@@ -1,6 +1,6 @@
 import React from "react";
 import bgPhoto from "../../assets/images/rejoinBg.jpg";
-import { BgImageContainer } from "../common/bgImageContainer";
+import { BackgroundContainer } from "../common/backgroundContainer";
 import { clearSessionStorage } from "../storages/localStorage";
 import { useAppDispatch, useAppSelector } from "../core/redux/store";
 import { shallowEqual } from "react-redux";
@@ -28,7 +28,7 @@ const RejoinViewComponent = () => {
       });
   };
   return (
-    <BgImageContainer imageURL={bgPhoto}>
+    <BackgroundContainer imageURL={bgPhoto}>
       <div className="w-100 d-flex justify-content-center h-100">
         <div className="w-75 h-100">
           <div className="w-40 dine-in-view-main">
@@ -49,7 +49,7 @@ const RejoinViewComponent = () => {
           </div>
         </div>
       </div>
-    </BgImageContainer>
+    </BackgroundContainer>
   );
 };
 
