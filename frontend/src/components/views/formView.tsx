@@ -6,9 +6,8 @@ import { joinUser } from "../core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { BgImageContainer } from "../common/bgImageContainer";
 import bgPhoto from "../../assets/images/formViewBg.png";
-import { Header } from "../common/header";
 
-const WaitListFormViewComponent = () => {
+const FormViewComponent = () => {
   const dispatch = useAppDispatch();
   const [name, setName] = useState("");
   const [partySize, setPartySize] = useState<string>("");
@@ -71,4 +70,4 @@ const WaitListFormViewComponent = () => {
   );
 };
 
-export const WaitListFormView = React.memo(WaitListFormViewComponent);
+export const FormView = React.memo(FormViewComponent);

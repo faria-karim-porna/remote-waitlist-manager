@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "./components/core/redux/store";
 import { fetchUser } from "./components/core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { shallowEqual } from "react-redux";
-import { WaitListFormView } from "./components/views/waitListFormView";
+import { FormView } from "./components/views/formView";
 import { clearSessionStorage, getUserFromSessionStorage } from "./components/storages/localStorage";
 import { UserAction } from "./components/core/redux/slices/userSlice";
 import { Header } from "./components/common/header";
@@ -54,7 +54,7 @@ const App: React.FC = () => {
         </div>
       ) : null} */}
       <Header />
-      <WaitListFormView />
+      <FormView />
       {/* <DineInView /> */}
       {/* <RejoinView /> */}
       {/* <WaitListView /> */}
