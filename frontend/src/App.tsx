@@ -13,6 +13,7 @@ import { Header } from "./components/common/header";
 import { DineInView } from "./components/views/dineInView";
 import { RejoinView } from "./components/views/rejoinView";
 import { WaitListView } from "./components/views/waitListView";
+import { useSocket } from "./components/hooks/useSocket";
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -24,8 +25,7 @@ const App: React.FC = () => {
     shallowEqual
   );
 
-  const [isSocketReady, setIsSocketReady] = useState(false);
-
+  useSocket();
 
   useEffect(() => {
     const userName = getUserFromSessionStorage();
@@ -33,29 +33,6 @@ const App: React.FC = () => {
       .then(unwrapResult)
       .then((response) => dispatch(UserAction.setUserInfo(response.data.user)));
   }, []);
-
-  useEffect(() => {
-    const newSocket = io("http://localhost:5000");
-    if (store.user?.name) {
-      newSocket.on("notification", (data: User) => {
-        setIsSocketReady(true);
-        dispatch(UserAction.setUserInfo({ ...store.user, ...data }));
-      });
-
-      if (newSocket) {
-        newSocket.emit("join", store.user.name);
-      }
-    }
-
-    return () => {
-      if (isSocketReady) {
-        setIsSocketReady(false);
-        newSocket.close();
-      }
-    };
-  }, [store.user]);
-
-
 
   return (
     <div>
@@ -76,11 +53,11 @@ const App: React.FC = () => {
           <button onClick={() => handleJoinAgain(store.user?.name ?? "")}>Join Again</button>
         </div>
       ) : null} */}
-      <Header/>
-      {/* <WaitListFormView /> */}
+      <Header />
+      <WaitListFormView />
       {/* <DineInView /> */}
       {/* <RejoinView /> */}
-      <WaitListView />
+      {/* <WaitListView /> */}
     </div>
   );
 };
