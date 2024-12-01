@@ -49,7 +49,9 @@ const WaitListViewComponent = () => {
               <div className="w-50">
                 {store.user?.canCheckIn ? (
                   <div>
-                    <FoodSvg />
+                    <div className="d-flex justify-content-center">
+                      <FoodSvg />
+                    </div>
                     <div>
                       <button onClick={() => handleCheckIn(store.user?.name ?? "")} className="square-button">
                         Submit
