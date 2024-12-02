@@ -1,2 +1,362 @@
 @import "../../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 /* @import "../../../node_modules/bootstrap/dist/js/bootstrap.bundle"; */
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.header {
+  height: 72px;
+  background-color: #5b11a665;
+}
+
+.logo {
+  height: 21px;
+  position: absolute;
+  left: 0;
+}
+
+.form-view-main {
+  width: 50%;
+}
+
+.main-view {
+  width: 40%;
+}
+
+.wait-list-view-main {
+  width: 50%;
+}
+
+.bg-photo {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.font-70 {
+  font-size: 70px;
+}
+
+.font-40 {
+  font-size: 40px;
+  line-height: 50px;
+}
+
+.font-25 {
+  font-size: 25px;
+}
+
+.font-22 {
+  font-size: 22px;
+  line-height: 35px;
+}
+
+.font-primary {
+  color: #5c11a6;
+}
+
+.font-secondary {
+  color: #fff;
+}
+
+.font-weight-700 {
+  font-weight: 700;
+}
+
+.font-weight-500 {
+  font-weight: 500;
+}
+
+.waitlist-form-input {
+  width: 100%;
+  height: 60px;
+  padding: 0px 10px 0px 10px;
+  border: 1px solid #d2d2d2;
+  font-size: 20px;
+}
+
+.waitlist-form-input:nth-child(1) {
+  border-bottom: none;
+}
+
+.waitlist-form-input:focus {
+  outline: 1px solid #5c11a6;
+  border: 1px solid #5c11a6;
+}
+
+.square-button {
+  background-color: #5c11a6;
+  color: white;
+  width: 100%;
+  height: 60px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.oval-button {
+  background-color: white;
+  border: none;
+  border-radius: 50px;
+  color: #5c11a6;
+  padding: 0px 20px 0px 20px;
+  height: 60px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.logoSvg {
+  height: 20px;
+}
+
+.st0 {
+  fill: white;
+}
+.st1 {
+  fill: white;
+}
+
+.cls-1 {
+  fill: #f7d147;
+  opacity: 0.5;
+}
+.cls-2 {
+  fill: #fff;
+}
+.cls-3 {
+  fill: #fda968;
+}
+.cls-4 {
+  fill: #0e708b;
+}
+.cls-5 {
+  fill: #feed9b;
+}
+.cls-6 {
+  fill: #1d8daa;
+}
+.cls-7 {
+  fill: #07536a;
+}
+.cls-8 {
+  fill: #033a49;
+}
+.cls-9 {
+  fill: #7935d2;
+}
+.cls-10 {
+  fill: #032877;
+}
+.cls-11,
+.cls-12 {
+  fill: none;
+  stroke-miterlimit: 10;
+  stroke-width: 2px;
+}
+.cls-11 {
+  stroke: #e4e4e4;
+}
+.cls-12 {
+  stroke: #939393;
+}
+
+.overlay {
+  background-color: #5b11a68a;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+}
+
+.small-user-svg {
+  fill: #000000;
+  height: 50px;
+  width: 50px;
+}
+
+.user-svg {
+  fill: #5c11a6;
+  height: 70px;
+  width: 70px;
+}
+
+.food-svg {
+  fill: #5c11a6;
+  height: 120px;
+  width: 120px;
+}
+
+.wait-list-view-small-text {
+  font-size: 22px;
+  margin-top: 10px;
+}
+
+.waitlist-view-main {
+  height: 300px;
+}
+
+.wait-list-view-info-area {
+  display: flex;
+  width: 80%;
+  align-items: center;
+  padding: 0px 10px 0px 10px;
+}
+
+.wait-list-view-info-area > div {
+  width: 50%;
+}
+
+.dining-svg {
+  width: 100%;
+}
+
+.logoSmallSvg {
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  padding-left: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .bg-photo {
+    background-position: right !important;
+  }
+
+  .form-view-main {
+    width: 100%;
+    padding: 20px 20px 20px 20px;
+    background-color: #fff;
+    border-radius: 10px;
+  }
+
+  .wait-list-view-main {
+    width: 100%;
+    padding: 20px 20px 20px 20px;
+  }
+
+  .font-70 {
+    font-size: 40px;
+  }
+
+  .font-40 {
+    font-size: 30px;
+    line-height: 30px;
+  }
+
+  .font-25 {
+    font-size: 20px;
+  }
+
+  .font-22 {
+    font-size: 17px;
+    line-height: 25px;
+  }
+
+  .waitlist-form-input {
+    font-size: 15px;
+  }
+
+  .main-view {
+    width: 100%;
+    padding: 20px 20px 20px 20px;
+    background-color: #0000006c;
+    border-radius: 10px;
+  }
+
+  .square-button {
+    font-size: 17px;
+  }
+
+  .oval-button {
+    font-size: 17px;
+  }
+
+  .wait-list-view-info-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .wait-list-view-info-area > div {
+    width: 100%;
+    text-align: center;
+  }
+
+  .small-user-svg {
+    height: 40px;
+    width: 40px;
+  }
+
+  .user-svg {
+    height: 60px;
+    width: 60px;
+  }
+}
+
+@media only screen and (max-width: 767px) and (orientation: landscape) {
+  .bg-photo {
+    background-position: right !important;
+    height: 150vh;
+    width: 100%;
+    position: relative;
+  }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 1199px) {
+  .bg-photo {
+    background-position: right !important;
+  }
+
+  .form-view-main {
+    width: 75%;
+    padding: 20px 20px 20px 20px;
+    background-color: #fff;
+    border-radius: 10px;
+  }
+
+  .main-view {
+    width: 75%;
+    padding: 20px 20px 20px 20px;
+    background-color: #0000006c;
+    border-radius: 10px;
+  }
+
+  .wait-list-view-main {
+    width: 100%;
+    padding: 20px 20px 20px 20px;
+  }
+
+  .wait-list-view-info-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .wait-list-view-info-area > div {
+    width: 100%;
+    text-align: center;
+  }
+}

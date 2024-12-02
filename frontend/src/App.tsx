@@ -1,140 +1,51 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-
-enum EnumStatus {
-  None = "None",
-  SeatIn = "Seat In",
-  InWaitingList = "In Waiting List",
-  ServiceCompleted = "Service Completed",
-}
-
-type User = {
-  name?: string;
-  partySize?: number;
-  status?: EnumStatus;
-  canCheckIn?: boolean;
-  waitingPosition?: number;
-};
+import React, { useEffect } from "react";
+import { EnumStatus } from "./components/core/dataTypes/enums/userEnum";
+import { useAppDispatch, useAppSelector } from "./components/core/redux/store";
+import { fetchUser } from "./components/core/redux/apiSlices/userApiSlice";
+import { unwrapResult } from "@reduxjs/toolkit";
+import { shallowEqual } from "react-redux";
+import { FormView } from "./components/views/formView";
+import { getUserFromSessionStorage } from "./components/storages/localStorage";
+import { UserAction } from "./components/core/redux/slices/userSlice";
+import { Header } from "./components/common/header";
+import { DineInView } from "./components/views/dineInView";
+import { RejoinView } from "./components/views/rejoinView";
+import { WaitListView } from "./components/views/waitListView";
+import { useSocket } from "./components/hooks/useSocket";
+import { LoadingView } from "./components/views/loadingView";
 
 const App: React.FC = () => {
-  const setUserInLocalStorage = (name: string) => {
-    localStorage.setItem("user", name);
-  };
-  const getUserFromLocalStorage = () => {
-    const storedUser = localStorage.getItem("user") ?? "";
-    return storedUser;
-  };
+  const dispatch = useAppDispatch();
+  const store = useAppSelector(
+    (state) => ({
+      isBusy: state.userApi.userFetch.isBusy,
+      user: state.user.userInfo,
+    }),
+    shallowEqual
+  );
 
-  const clearLocalStorage = () => {
-    localStorage.clear();
-  };
-
-  const [name, setName] = useState("");
-  const [partySize, setPartySize] = useState(1);
-  const [user, setUser] = useState<User>({});
-  const [isSocketReady, setIsSocketReady] = useState(false);
-
-  const fetchUser = async (userName: string) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/api/user/${userName}`);
-      setUser(response.data.user);
-    } catch {
-      setUser({});
-    }
-  };
+  useSocket();
 
   useEffect(() => {
-    const userName = getUserFromLocalStorage();
-    fetchUser(userName);
+    const userName = getUserFromSessionStorage();
+    dispatch(fetchUser(userName))
+      .then(unwrapResult)
+      .then((response) => dispatch(UserAction.setUserInfo(response.data.user)));
   }, []);
 
-  useEffect(() => {
-    const newSocket = io("http://localhost:5000");
-    if (user.name) {
-      newSocket.on("notification", (data: User) => {
-        setIsSocketReady(true);
-        setUser({ ...user, ...data });
-      });
-
-      if (newSocket) {
-        newSocket.emit("join", user.name);
-      }
-    }
-
-    return () => {
-      if (isSocketReady) {
-        setIsSocketReady(false);
-        newSocket.close();
-      }
-    };
-  }, [user]);
-
-  const handleJoin = () => {
-    fetch("http://localhost:5000/api/join", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, partySize }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setUser(data.user);
-          setUserInLocalStorage(name);
-        }
-      });
-  };
-
-  const handleCheckIn = (name: string) => {
-    fetch("http://localhost:5000/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setUser(data.user);
-        }
-      });
-  };
-
-  const handleJoinAgain = (name: string) => {
-    fetch("http://localhost:5000/api/deleteUser", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.message) {
-          clearLocalStorage();
-          setUser({});
-        }
-      });
-  };
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Restaurant Waitlist</h1>
-      {!user.name ? (
-        <>
-          <input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input type="number" min="1" placeholder="Party size" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} />
-          <button onClick={() => handleJoin()}>Submit</button>
-        </>
-      ) : user.status === EnumStatus.InWaitingList && user.canCheckIn ? (
-        <button onClick={() => handleCheckIn(user.name ?? "")}>Check In</button>
-      ) : user.status === EnumStatus.InWaitingList ? (
-        <div>Your waiting position is {user?.waitingPosition}</div>
-      ) : user.status === EnumStatus.SeatIn ? (
-        <div>Enjoy Your Service</div>
-      ) : user.status === EnumStatus.ServiceCompleted ? (
-        <div>
-          <div>Thank You For Coming</div>
-          <button onClick={() => handleJoinAgain(user.name ?? "")}>Join Again</button>
-        </div>
+    <div>
+      <Header />
+      {store.isBusy ? (
+        <LoadingView />
+      ) : !store.user?.name ? (
+        <FormView />
+      ) : store.user?.status === EnumStatus.InWaitingList ? (
+        <WaitListView />
+      ) : store.user?.status === EnumStatus.SeatIn ? (
+        <DineInView />
+      ) : store.user?.status === EnumStatus.ServiceCompleted ? (
+        <RejoinView />
       ) : null}
     </div>
   );
