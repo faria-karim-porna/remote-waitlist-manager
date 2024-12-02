@@ -3,11 +3,11 @@ import React from "react";
 const DiningSvgComponent = () => {
   return (
     <div>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300">
+      <svg xmlns="http://www.w3.org/2000/svg" className="dining-svg">
         <defs></defs>
         <title>Help Center Illustrations</title>
         <g id="sky">
-          <rect className="cls-1" width="1600" height="300" />
+          <rect className="cls-1" />
           <path
             className="cls-2"
             d="M671.22,58.39c-2.54-4.15-8.68-9.84-23.57-13-12.52-2.68-22,3.66-34,5.6C595.76,53.86,581,39.91,566.7,31.45,546.07,19.22,523.19,8.74,498.91,7.32c-12.25-.72-25.15.89-36.51,5.72-10.47,4.44-16.8,14.15-26,20.47C423.92,42.15,409.54,45,394.75,47a33.2,33.2,0,0,0-24.12,16.48H668.28A3.37,3.37,0,0,0,671.22,58.39Z"

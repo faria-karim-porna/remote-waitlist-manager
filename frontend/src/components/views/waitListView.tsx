@@ -30,21 +30,21 @@ const WaitListViewComponent = () => {
   return (
     <BackgroundContainer gradientColor={"280deg, #68007a 6%, #1f053d 84%"}>
       <div className="d-flex w-100 justify-content-center h-100 align-items-center">
-        <div className="w-50 ">
+        <div className="wait-list-view-main">
           <div className="position-relative">
             <DiningSvg />
-            <div className="overlay d-flex justify-content-center align-items-center">
+            <div className="overlay d-flex justify-content-center align-items-center text-center">
               <div className="dine-in-view-title">{store.user?.canCheckIn ? "Please!! check in" : "All seats are booked"}</div>
             </div>
           </div>
           <div className="bg-white d-flex w-100 justify-content-center waitlist-view-main">
-            <div className="d-flex w-80 align-items-center">
-              <div className="w-50 wait-list-view-subtitle">
+            <div className="wait-list-view-info-area">
+              <div className="wait-list-view-subtitle">
                 {store.user?.canCheckIn
                   ? "Your table is just a check-in away. Tap to get started!"
                   : "Thank you for choosing us – we'll seat you soon!"}
               </div>
-              <div className="w-50">
+              <div>
                 {store.user?.canCheckIn ? (
                   <div>
                     <div className="d-flex justify-content-center">

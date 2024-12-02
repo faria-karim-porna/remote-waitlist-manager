@@ -27,6 +27,10 @@ html {
   width: 40%;
 }
 
+.wait-list-view-main {
+  width: 50%;
+}
+
 .bg-photo {
   background-size: cover !important;
   background-position: center !important;
@@ -209,6 +213,20 @@ html {
   font-weight: 500;
 }
 
+.wait-list-view-info-area {
+  display: flex;
+  width: 80%;
+  align-items: center;
+}
+
+.wait-list-view-info-area > div {
+  width: 50%;
+}
+
+.dining-svg{
+  width: 100%;
+}
+
 @media only screen and (max-width: 767px) {
   .bg-photo {
     background-position: right !important;
@@ -219,6 +237,11 @@ html {
     padding: 20px 20px 20px 20px;
     background-color: #fff;
     border-radius: 10px;
+  }
+
+  .wait-list-view-main {
+    width: 100%;
+    padding: 20px 20px 20px 20px;
   }
 
   .wait-list-form-title {
@@ -258,6 +281,28 @@ html {
   .oval-button {
     font-size: 17px;
   }
+
+  .wait-list-view-info-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .wait-list-view-info-area > div {
+    width: 100%;
+    text-align: center;
+  }
+
+  .small-user-svg {
+    height: 40px;
+    width: 40px;
+  }
+
+  .user-svg {
+    height: 60px;
+    width: 60px;
+  }
 }
 
 @media only screen and (max-width: 767px) and (orientation: landscape) {
@@ -286,5 +331,22 @@ html {
     padding: 20px 20px 20px 20px;
     background-color: #0000006c;
     border-radius: 10px;
+  }
+
+  .wait-list-view-main {
+    width: 100%;
+    padding: 20px 20px 20px 20px;
+  }
+
+  .wait-list-view-info-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .wait-list-view-info-area > div {
+    width: 100%;
+    text-align: center;
   }
 }
