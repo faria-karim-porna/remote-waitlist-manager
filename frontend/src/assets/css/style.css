@@ -40,16 +40,38 @@ html {
   position: fixed;
 }
 
-.wait-list-form-title {
-  font-size: 40px;
-  line-height: 50px;
-  font-weight: bold;
+.font-70 {
+  font-size: 70px;
 }
 
-.waitlist-form-subtitle {
+.font-40 {
+  font-size: 40px;
+  line-height: 50px;
+}
+
+.font-25 {
+  font-size: 25px;
+}
+
+.font-22 {
   font-size: 22px;
   line-height: 35px;
+}
+
+.font-primary {
   color: #5c11a6;
+}
+
+.font-secondary {
+  color: #fff;
+}
+
+.font-weight-700 {
+  font-weight: 700;
+}
+
+.font-weight-500 {
+  font-weight: 500;
 }
 
 .waitlist-form-input {
@@ -67,18 +89,6 @@ html {
 .waitlist-form-input:focus {
   outline: 1px solid #5c11a6;
   border: 1px solid #5c11a6;
-}
-
-.dine-in-view-title {
-  font-size: 70px;
-  font-weight: bold;
-  color: white;
-}
-
-.dine-in-view-subtitle {
-  font-size: 22px;
-  line-height: 35px;
-  color: white;
 }
 
 .square-button {
@@ -190,14 +200,6 @@ html {
   width: 80%;
 }
 
-.wait-list-view-subtitle {
-  font-size: 25px;
-  color: #5c11a6;
-  font-weight: 500;
-  text-align: center;
-  padding: 0px 10px 0px 10px;
-}
-
 .wait-list-view-small-text {
   font-size: 22px;
   margin-top: 10px;
@@ -207,23 +209,18 @@ html {
   height: 300px;
 }
 
-.style-text {
-  color: #5c11a6;
-  font-size: 22px;
-  font-weight: 500;
-}
-
 .wait-list-view-info-area {
   display: flex;
   width: 80%;
   align-items: center;
+  padding: 0px 10px 0px 10px;
 }
 
 .wait-list-view-info-area > div {
   width: 50%;
 }
 
-.dining-svg{
+.dining-svg {
   width: 100%;
 }
 
@@ -244,12 +241,20 @@ html {
     padding: 20px 20px 20px 20px;
   }
 
-  .wait-list-form-title {
+  .font-70 {
+    font-size: 40px;
+  }
+
+  .font-40 {
     font-size: 30px;
     line-height: 30px;
   }
 
-  .waitlist-form-subtitle {
+  .font-25 {
+    font-size: 20px;
+  }
+
+  .font-22 {
     font-size: 17px;
     line-height: 25px;
   }
@@ -263,15 +268,6 @@ html {
     padding: 20px 20px 20px 20px;
     background-color: #0000006c;
     border-radius: 10px;
-  }
-
-  .dine-in-view-title {
-    font-size: 40px;
-  }
-
-  .dine-in-view-subtitle {
-    font-size: 17px;
-    line-height: 25px;
   }
 
   .square-button {
@@ -348,5 +344,23 @@ html {
   .wait-list-view-info-area > div {
     width: 100%;
     text-align: center;
+  }
+}
+
+.logoSmallSvg {
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  padding-left: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
   }
 }

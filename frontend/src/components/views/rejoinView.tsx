@@ -32,11 +32,11 @@ const RejoinViewComponent = () => {
       <div className="w-100 d-flex justify-content-center h-100">
         <div className="w-75 h-100 d-flex align-items-center">
           <div className="dine-in-view-main">
-            <div className="dine-in-view-title">Thanks for dining with us!</div>
-            <div className="dine-in-view-subtitle my-4">
+            <div className="font-70 font-secondary font-weight-700">Thanks for dining with us!</div>
+            <div className="font-22 font-secondary my-4">
               Thank you for choosing our restaurant! We hope your meal was delightful and look forward to welcoming you back soon.
             </div>
-            <div className="dine-in-view-subtitle">
+            <div className="font-22 font-secondary">
               Want to join us again for another delicious meal? Click below to rejoin, and we’ll save your spot!
             </div>
             <div className="d-flex mt-4">
