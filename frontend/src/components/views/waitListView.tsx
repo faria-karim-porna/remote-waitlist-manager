@@ -7,6 +7,8 @@ import { shallowEqual } from "react-redux";
 import { checkInUser } from "../core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { BackgroundContainer } from "../common/backgroundContainer";
+import { UserAction } from "../core/redux/slices/userSlice";
+import { TextSection } from "../textSection";
 
 const WaitListViewComponent = () => {
   const dispatch = useAppDispatch();
@@ -23,7 +25,8 @@ const WaitListViewComponent = () => {
       .then(unwrapResult)
       .then((response) => {
         if (response) {
-          // dispatch(UserAction.setUserInfo(data.user));
+          console.log(response);
+          dispatch(UserAction.setUserInfo(response));
         }
       });
   };
@@ -34,7 +37,7 @@ const WaitListViewComponent = () => {
           <div className="position-relative">
             <DiningSvg />
             <div className="overlay d-flex justify-content-center align-items-center text-center">
-              <div className="font-70 font-secondary font-weight-700">{store.user?.canCheckIn ? "Please!! check in" : "All seats are booked"}</div>
+              <TextSection titles={store.user?.canCheckIn ? ["Please!! check in"] : ["All seats are booked"]} />
             </div>
           </div>
           <div className="bg-white d-flex w-100 justify-content-center waitlist-view-main">
@@ -68,7 +71,8 @@ const WaitListViewComponent = () => {
                       <UserSvg small={true} />
                     </div>
                     <div className="wait-list-view-small-text">
-                      You're <span className="font-22 font-primary font-weight-500">#{store.user?.waitingPosition}</span> on the waitlist. Please wait.
+                      You're <span className="font-22 font-primary font-weight-500">#{store.user?.waitingPosition}</span> on the waitlist.
+                      Please wait.
                     </div>
                   </div>
                 )}

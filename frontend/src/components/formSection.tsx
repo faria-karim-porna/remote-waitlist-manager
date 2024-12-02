@@ -33,12 +33,14 @@ const FormSectionComponent = () => {
       <div>
         <input
           type="text"
-          placeholder="Party size"
+          placeholder="Party size (not more than 10)"
           value={partySize}
           onChange={(e) => {
             const value = e.target.value;
-            if (value === "" || /^[0-9]+$/.test(value)) {
+            if ((value === "" || /^[0-9]+$/.test(value)) && (value === "" || parseInt(value, 10) <= 10)) {
               setPartySize(value);
+            } else {
+              setPartySize(value.slice(0, -1));
             }
           }}
           className="waitlist-form-input"

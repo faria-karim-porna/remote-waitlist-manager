@@ -28,11 +28,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const userName = getUserFromSessionStorage();
-    if (userName) {
-      dispatch(fetchUser(userName))
-        .then(unwrapResult)
-        .then((response) => dispatch(UserAction.setUserInfo(response.data.user)));
-    }
+    dispatch(fetchUser(userName))
+      .then(unwrapResult)
+      .then((response) => dispatch(UserAction.setUserInfo(response.data.user)));
   }, []);
 
   return (
