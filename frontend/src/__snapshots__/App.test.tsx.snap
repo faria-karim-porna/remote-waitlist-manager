@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FormView Component matches the snapshot 1`] = `
+<DocumentFragment>
+  <div
+    data-testid="background-container"
+  >
+    <div
+      class="d-flex justify-content-center h-100"
+    >
+      <div
+        class="w-75 d-flex align-items-center h-100"
+      >
+        <div
+          class="form-view-main"
+        >
+          <div>
+            <div
+              class="font-40 font-weight-700"
+            >
+              Book amazing restaurants
+            </div>
+            <div
+              class="my-4"
+            >
+              <div
+                class="font-22 font-primary"
+              >
+                From local favorites to the trending restaurants, enjoy without the wait. Discover popular restaurants where you can skip the wait by booking through TableCheck.
+              </div>
+            </div>
+          </div>
+          <div
+            data-testid="form-section"
+          >
+            Mock FormSection
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
