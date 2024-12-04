@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom';
 // src/setupTests.ts
 import { server } from './mocks/server';
 
