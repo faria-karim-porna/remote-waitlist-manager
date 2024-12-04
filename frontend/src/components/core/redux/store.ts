@@ -3,7 +3,7 @@ import { createSelectorHook, TypedUseSelectorHook, useDispatch } from "react-red
 import { UserReducer } from "./slices/userSlice";
 import { UserApiReducer } from "./apiSlices/userApiSlice";
 
-const RootReducer = combineReducers({
+export const RootReducer = combineReducers({
   user: UserReducer,
   userApi: UserApiReducer,
 });

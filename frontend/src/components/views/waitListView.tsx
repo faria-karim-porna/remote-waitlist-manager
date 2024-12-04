@@ -25,7 +25,6 @@ const WaitListViewComponent = () => {
       .then(unwrapResult)
       .then((response) => {
         if (response) {
-          console.log(response);
           dispatch(UserAction.setUserInfo(response));
         }
       });
@@ -55,7 +54,7 @@ const WaitListViewComponent = () => {
                     </div>
                     <div>
                       <button onClick={() => handleCheckIn(store.user?.name ?? "")} className="square-button">
-                        Submit
+                        Check in
                       </button>
                     </div>
                   </div>
