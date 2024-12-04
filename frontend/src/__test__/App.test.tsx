@@ -42,11 +42,4 @@ describe("FormView Component", () => {
     expect(mainDiv).toHaveClass("font-40 font-weight-700");
   });
 
-  // it("renders the FormSection component", () => {
-  //   render(<FormView />);
-
-  //   const formSection = screen.getByTestId("form-section");
-  //   expect(formSection).toBeInTheDocument();
-  //   // expect(formSection).toHaveTextContent("Mock FormSection");
-  // });
 });
