@@ -1,5 +1,6 @@
 import React from "react";
-import { UserSvg } from "./assets/svg/userSvg";
+import { UserSvg } from "../assets/svg/userSvg";
+
 
 type WaitingSectionProps = {
   waitingPosition?: number;

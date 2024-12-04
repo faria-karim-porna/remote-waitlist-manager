@@ -4,8 +4,8 @@ import { useAppSelector } from "../core/redux/store";
 import { shallowEqual } from "react-redux";
 import { BackgroundContainer } from "../common/backgroundContainer";
 import { TextSection } from "../textSection";
-import { CheckInSection } from "../../checkInSection";
-import { WaitingSection } from "../../waitingSection";
+import { CheckInSection } from "../checkInSection";
+import { WaitingSection } from "../waitingSection";
 
 const WaitListViewComponent = () => {
   const store = useAppSelector(

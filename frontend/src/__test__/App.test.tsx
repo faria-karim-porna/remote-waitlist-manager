@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { FormView } from "../components/views/formView";
 import { BackgroundContainer } from "../components/common/backgroundContainer";
-import bgPhoto from "./assets/images/formViewBg.png";
+import bgPhoto from "../assets/images/formViewBg.png";
 
 const mockDispatch = jest.fn();
 

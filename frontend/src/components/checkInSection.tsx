@@ -1,9 +1,9 @@
 import React from "react";
-import { useAppDispatch } from "./components/core/redux/store";
-import { checkInUser } from "./components/core/redux/apiSlices/userApiSlice";
+import { useAppDispatch } from "./core/redux/store";
+import { checkInUser } from "./core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
-import { UserAction } from "./components/core/redux/slices/userSlice";
-import { FoodSvg } from "./assets/svg/foodSvg";
+import { UserAction } from "./core/redux/slices/userSlice";
+import { FoodSvg } from "../assets/svg/foodSvg";
 
 type CheckInSectionProps = {
   name?: string;
