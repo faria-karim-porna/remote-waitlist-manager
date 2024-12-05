@@ -11,17 +11,23 @@
   - Notifications when a table is ready.
   - Check-in system for efficient table allocation.
 
-- **Real-Time Updates**: 
-  - Powered by the **Observer Pattern** with `socket.io`.
-
-- **Service Time Management**:
+- **Dynamic Service Time Management**:
   - Service time is calculated based on party size (hardcoded to 3 seconds per person).
   - Restaurant capacity is hardcoded at 10 seats.
 
-- **Scalable Architecture**: 
+- **Real-Time Updates**: 
+  - Send real time updates with `socket.io`.
+
+---
+
+- **Scalable Architecture and Reusable Design**: 
   - **Template Method Pattern** for reusable workflows such as adding observers, sending notifications, detaching all observers, and updating the database.
   - **Repository Pattern** for clean and consistent database interactions.
-  - Custom hooks and components in the frontend for modularity.
+- **Separation of Concerns**: Custom hooks implemented in the frontend for cleaner and reusable components.
+- **Testing**: Unit and integration tests using `jest` and `React Testing Library`.
+- **Responsive UI**: Designed with `Bootstrap` for a seamless user experience.
+- **Dockerized Environment**: Easy setup with `Docker`.
+- **Model-View-Controller (MVC) Architecture**: Clear separation between data (`models`), logic (`controllers`, `processors`, `observers`), and routing (`routes`).
 
 ---
 
