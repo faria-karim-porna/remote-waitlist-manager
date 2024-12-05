@@ -78,7 +78,6 @@ describe("App Component", () => {
   });
 
   it("renders Header and Views components", () => {
-    const mockUserName = "John Doe";
     const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
     (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
     mockDispatch.mockResolvedValue({
