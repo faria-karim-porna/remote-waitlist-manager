@@ -17,11 +17,9 @@ const RejoinSectionComponent = (props: RejoinSectionProps) => {
   const handleJoinAgain = (name: string) => {
     dispatch(deleteUser(name))
       .then(unwrapResult)
-      .then((response) => {
-        if (response) {
-          clearSessionStorage();
-          dispatch(UserAction.removeUserInfo());
-        }
+      .then(() => {
+        clearSessionStorage();
+        dispatch(UserAction.removeUserInfo());
       });
   };
   return (

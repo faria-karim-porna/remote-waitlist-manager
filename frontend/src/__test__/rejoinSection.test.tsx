@@ -1,9 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { RejoinSection } from "../components/rejoinSection";
 import { deleteUser } from "../components/core/redux/apiSlices/userApiSlice";
-import { configureStore } from "@reduxjs/toolkit";
-import { Provider } from "react-redux";
-import { UserAction, UserReducer } from "../components/core/redux/slices/userSlice";
+import { UserAction } from "../components/core/redux/slices/userSlice";
 import { clearSessionStorage } from "../components/storages/localStorage";
 
 const mockDispatch = jest.fn();
@@ -50,26 +48,20 @@ describe("RejoinSection Component", () => {
     expect(button).toBeInTheDocument();
   });
 
-  //   test("calls handleJoinAgain with the correct name", async () => {
-  //     const mockUserResponse = null;
-  //     (deleteUser as unknown as jest.Mock).mockResolvedValue(mockUserResponse);
+  test("calls handleJoinAgain with the correct name", async () => {
+    const mockUserResponse = null;
+    (deleteUser as unknown as jest.Mock).mockResolvedValue(mockUserResponse);
 
-  //     mockDispatch.mockResolvedValue({
-  //       payload: mockUserResponse,
-  //     });
+    mockDispatch.mockResolvedValue({
+      payload: mockUserResponse,
+    });
 
-  //     const store = configureStore({ reducer: { user: UserReducer } });
-  //     render(
-  //       <Provider store={store}>
-  //         <RejoinSection name={"John Doe"} />
-  //       </Provider>
-  //     );
+    render(<RejoinSection name={"John Doe"} />);
 
-  //     fireEvent.click(screen.getByText("Join with us again"));
-  //     await new Promise((resolve) => setTimeout(resolve, 0));
-  //     expect(deleteUser).toHaveBeenCalledWith("John Doe");
-  //     expect(mockDispatch).toHaveBeenCalledWith(UserAction.removeUserInfo());
-  //     expect(mockDispatch).toHaveReturnedWith({});
-  //     expect(clearSessionStorage).toHaveBeenCalled();
-  //   });
+    fireEvent.click(screen.getByText("Join with us again"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(deleteUser).toHaveBeenCalledWith("John Doe");
+    expect(clearSessionStorage).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(UserAction.removeUserInfo());
+  });
 });
