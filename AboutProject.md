@@ -18,16 +18,14 @@
 - **Real-Time Updates**: 
   - Send real time updates with `socket.io`.
 
----
+- **LocalStorage Integration**:
+  - LocalStorage is used to maintain session information across multiple browser tabs, ensuring a seamless experience for diners who might switch or reopen tabs during their wait.
 
-- **Scalable Architecture and Reusable Design**: 
-  - **Template Method Pattern** for reusable workflows such as adding observers, sending notifications, detaching all observers, and updating the database.
-  - **Repository Pattern** for clean and consistent database interactions.
-- **Separation of Concerns**: Custom hooks implemented in the frontend for cleaner and reusable components.
-- **Testing**: Unit and integration tests using `jest` and `React Testing Library`.
-- **Responsive UI**: Designed with `Bootstrap` for a seamless user experience.
-- **Dockerized Environment**: Easy setup with `Docker`.
-- **Model-View-Controller (MVC) Architecture**: Clear separation between data (`models`), logic (`controllers`, `processors`, `observers`), and routing (`routes`).
+- **Testing**:
+  - Unit and integration tests using `jest` and `React Testing Library`.
+
+- **Dockerized Environment**: 
+  - Easy setup with `Docker`.
 
 ---
 
@@ -37,10 +35,11 @@
 - `React.js` (with `TypeScript`)
 - `Redux Toolkit`
 - `Bootstrap`
+- `Socket.io` (client)
 
 ### Backend:
 - `Node.js`
-- `Express.js`
+- `Express.js` (with `TypeScript`)
 - `MongoDB` (with `Mongoose`)
 - `Socket.io`
 
@@ -60,32 +59,30 @@
 1. **Observer Pattern**:
    - Ensures diners are notified in real-time when their table is ready via `socket.io`.
    - Updates the database simultaneously to reflect the state change.
-
 2. **Template Method Pattern**:
    - Provides a structured way to handle reusable workflows, including:
      - Adding observers to the notification list.
+     - Updating the database after state changes to maintain consistency.
      - Sending notifications to all registered observers.
      - Detaching all observers when their purpose is fulfilled.
-     - Updating the database after state changes to maintain consistency.
-
 3. **Repository Pattern**:
    - Centralizes data access logic for cleaner code and easier testing.
-
-4. **MVC Architecture**:
+   - Provides a and consistent way to interact with the database.
+4. **Model-View-Controller (MVC) Architecture**:
    - Maintains a clear separation of responsibilities:
      - Models handle data and schema definitions.
      - Controllers manage application logic.
      - Routes define API endpoints.
 
 ### Frontend
-1. **Component-Based Architecture**:
-   - Modular components enable scalable and maintainable UI development.
-
-2. **Custom Hooks**:
-   - Encapsulate stateful logic, improving separation of concerns and reusability.
-
+1. **Separation of Concerns**:
+   - Custom hooks improves separation of concerns by encapsulating stateful logic in reusable hooks.
+2. **Component-Based Architecture**:
+   - Divides UI into small, reusable components for scalability and maintainability.
 3. **Redux Toolkit**:
    - Simplifies state management with minimal boilerplate.
+4. **Responsive UI**: 
+   - Designed with `Bootstrap` for a seamless user experience.
 
 ---
 
@@ -96,22 +93,21 @@
 ```bash
 frontend/
 ├── src/
-│   ├── __test__/
-│   ├── assets/
-│   │   ├── css/
-│   │   ├── images/
-│   │   └── svg/
-│   ├── components/ # Reusable UI components (e.g., WaitlistForm, PartyList)
-│   │   ├── common/
-│   │   ├── core/
-│   │   │   ├── dataTypes/
-│   │   │   └── redux/
-│   │   ├── common/
-│   │   ├── hooks/ # Custom React hooks for stateful logic
-│   │   ├── storages/
-│   │   └── views/ # View-level components (e.g., HomePage, WaitlistPage)
-│   ├── App.tsx # Main application entry
-│   └── main.tsx # React DOM entry point
+│   ├── __test__/          # Unit and integration tests for frontend components
+│   ├── assets/            # Static assets used in the application
+│   │   ├── css/           # Global and component-specific CSS styles
+│   │   ├── images/        # Image files (e.g., logos, icons, and backgrounds)
+│   │   └── svg/           # SVG files for vector-based graphics
+│   ├── components/        # Reusable UI components that build the application
+│   │   ├── common/        # Shared components used across multiple features
+│   │   ├── core/          # Core components containing essential logic
+│   │   │   ├── dataTypes/ # TypeScript interfaces and types for data models
+│   │   │   └── redux/     # Redux-related logic for state management
+│   │   ├── hooks/         # Custom React hooks for managing reusable stateful logic
+│   │   ├── storages/      # Utilities for interacting with browser storage (e.g., LocalStorage)
+│   │   └── views/         # View-level components representing different app views
+│   ├── App.tsx            # Main application component that defines the overall structure
+│   └── main.tsx           # Entry point for React DOM rendering
 ```
 
 ### **Backend**
@@ -119,18 +115,18 @@ frontend/
 ```bash
 backend/
 ├── src/
-│   ├── __test__/
-│   ├── config/
-│   ├── controllers/ # Handles business logic (e.g., waitlist processing)
-│   ├── dataTypes/
-│   ├── helpers/ # Utility functions and shared logic
-│   ├── models/ # Mongoose schemas for MongoDB
-│   ├── observers/ # Real-time notification handlers
-│   ├── processors/ # Reusable workflows (e.g., service time calculation, notification handling)
-│   ├── repositories/ # Data access logic using Repository Pattern
-│   ├── routes/ # API route definitions
-│   ├── services/
-│   └── server.ts # Main server entry point
+│   ├── __test__/          # Unit and integration tests for backend modules
+│   ├── config/            # Configuration files for the application (e.g., database setup, socket setup)
+│   ├── controllers/       # Handles business logic
+│   ├── dataTypes/         # TypeScript interfaces and types for backend entities
+│   ├── helpers/           # Utility functions and shared logic
+│   ├── models/            # Mongoose schemas for MongoDB collections
+│   ├── observers/         # Observer Pattern
+│   ├── processors/        # Reusable workflows
+│   ├── repositories/      # Data access layer for database operations, implementing the Repository Pattern
+│   ├── routes/            # API route definitions, mapping URLs to controller methods
+│   ├── services/          # Business service layer for complex operations
+│   └── server.ts          # Main server entry point to set up and start the Express.js application
 ```
 
 ---
@@ -229,12 +225,6 @@ Ensure the following tools are installed:
     cd frontend
     npm test
     ```
-
----
-
-## License
-
-This project is licensed under the [MIT License](./LICENSE).
 
 ---
 

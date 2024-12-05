@@ -80,3 +80,96 @@ Your submission will be evaluated based on:
 5. QA: Are you confident in the quality of your product? If you had to refactor or add new features, would you be able to do so without breaking the existing functionality? There is no guideline on how many tests you should write, what type of tests you should write, what level of coverage you need to achieve, etc. We leave it to you to decide how to ensure a level of quality that results in your customers trusting your product.
 
 ### Good luck!
+
+## Installation and Setup
+
+### Prerequisites
+
+Ensure the following tools are installed:
+- [Node.js](https://nodejs.org/)
+- [Docker](https://www.docker.com/) (optional for containerized setup)
+
+### **Setup Without Docker**
+
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/faria-karim-porna/remote-waitlist-manager.git
+    cd remote-waitlist-manager
+    ```
+
+2. **Install dependencies**:
+    - For backend:
+      ```bash
+      cd backend
+      npm install
+      ```
+    - For frontend:
+      ```bash
+      cd frontend
+      npm install
+      ```
+
+3. **Configure Environment Variables**:
+    - Backend:
+      Create a `.env` file in the `backend` directory with the following variables:
+      ```env
+      PORT=5000
+      MONGO_URI=<your_mongodb_connection_string>
+      ```
+    - Frontend:
+      No specific configuration is required unless using custom APIs.
+
+4. **Run the application**:
+    - Start the backend:
+      ```bash
+      cd backend
+      npm run start-dev
+      ```
+    - Start the frontend:
+      ```bash
+      cd frontend
+      npm run dev
+      ```
+
+5. **Access the application**:
+    - Open the browser and navigate to `http://localhost:5173`.
+
+### **Setup With Docker**
+
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/faria-karim-porna/remote-waitlist-manager.git
+    cd remote-waitlist-manager
+    ```
+
+2. **Build and Run Containers**:
+    ```bash
+    docker compose up
+    ```
+
+3. **Access the application**:
+    - Frontend: `http://localhost:5173`
+    - Backend API: `http://localhost:5000`
+
+4. **Stopping the Containers**:
+    ```bash
+    docker compose down
+    ```
+
+## Testing
+
+1. **Run Backend Tests**:
+    ```bash
+    cd backend
+    npm test
+    ```
+
+2. **Run Frontend Tests**:
+    ```bash
+    cd frontend
+    npm test
+    ```
+
+## About Project
+
+* To learn more about the Remote Waitlist Manager and for project setup instructions, [click here]([./README.md](https://github.com/faria-karim-porna/remote-waitlist-manager/blob/readme-files/AboutProject.md)).
