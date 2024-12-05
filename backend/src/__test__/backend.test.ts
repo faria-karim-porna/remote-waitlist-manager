@@ -88,6 +88,20 @@ describe("User Join API", () => {
   });
 });
 
+describe("User Delete API", () => {
+  it("should delete a user", async () => {
+    await changeData("Faria Karim", { status: EnumStatus.ServiceCompleted });
+    const updatedUser = await UsersList.findOne({ name: "Faria Karim" });
+    expect(updatedUser?.status).toBe(EnumStatus.ServiceCompleted);
+    const response = await request(app).delete("/api/deleteUser").send({
+      name: "Faria Karim",
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("User has been deleted");
+  });
+});
+
 describe("User Check In API", () => {
   it("should checkin a user and status will be seat in", async () => {
     await changeData("Valerio Donati", { canCheckIn: true });
@@ -103,5 +117,18 @@ describe("User Check In API", () => {
     expect(response.body.user.partySize).toBe(5);
     expect(response.body.user.canCheckIn).toBe(true);
     expect(response.body.user.status).toBe(EnumStatus.SeatIn);
+  });
+});
+
+describe("User Details API", () => {
+  it("should get a user details", async () => {
+    const response = await request(app).get("/api/user/Daniel Lizik");
+
+    expect(response.status).toBe(200);
+    expect(response.body.user.name).toBe("Daniel Lizik");
+    expect(response.body.user.partySize).toBe(5);
+    expect(response.body.user.status).toBe(EnumStatus.InWaitingList);
+    expect(response.body.user.waitingPosition).toBe(1);
+    expect(response.body.user.canCheckIn).toBe(false);
   });
 });
