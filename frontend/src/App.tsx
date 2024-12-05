@@ -13,7 +13,7 @@ const App: React.FC = () => {
   useSocket();
 
   useEffect(() => {
-    const userName = getUserFromSessionStorage() ?? "";
+    const userName = getUserFromSessionStorage();
     dispatch(fetchUser(userName ?? ""))
       .then(unwrapResult)
       .then((response) => {

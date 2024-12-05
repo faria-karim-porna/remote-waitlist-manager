@@ -20,9 +20,9 @@ jest.mock("../components/core/redux/apiSlices/userApiSlice", () => ({
   fetchUser: jest.fn(),
 }));
 
-// jest.mock("../components/storages/localStorage", () => ({
-//   getUserInSessionStorage: jest.fn(),
-// }));
+jest.mock("../components/storages/localStorage", () => ({
+  getUserFromSessionStorage: jest.fn(),
+}));
 
 jest.mock("../components/hooks/useSocket", () => ({
   useSocket: jest.fn(),
@@ -48,14 +48,13 @@ describe("App Component", () => {
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
     });
-    // (getUserFromSessionStorage as unknown as jest.Mock).mockReturnValue(mockUserName);
     const store = configureStore({ reducer: { user: UserReducer } });
     render(
       <Provider store={store}>
         <App />
       </Provider>
     );
-    // expect(getUserFromSessionStorage).toHaveBeenCalled();
+    expect(getUserFromSessionStorage).toHaveBeenCalled();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(mockDispatch).toHaveBeenCalledWith(fetchUser(mockUserName));
     expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockResponse.data.user));
@@ -67,7 +66,6 @@ describe("App Component", () => {
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
     });
-    // (getUserFromSessionStorage as unknown as jest.Mock).mockReturnValue(mockUserName);
     const store = configureStore({ reducer: { user: UserReducer } });
     render(
       <Provider store={store}>
@@ -83,7 +81,6 @@ describe("App Component", () => {
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
     });
-    // (getUserFromSessionStorage as unknown as jest.Mock).mockReturnValue(mockUserName);
     const store = configureStore({ reducer: { user: UserReducer } });
     render(
       <Provider store={store}>
