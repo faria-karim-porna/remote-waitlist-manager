@@ -29,11 +29,11 @@ jest.mock("../components/hooks/useSocket", () => ({
 }));
 
 jest.mock("../components/common/header", () => ({
-  Header: () => <div data-testid="header">Mock Header</div>,
+  Header: jest.fn(() => <div data-testid="header">Mock Header</div>),
 }));
 
 jest.mock("../components/views/views", () => ({
-  Views: () => <div data-testid="views">Mock Views</div>,
+  Views: jest.fn(() => <div data-testid="views">Mock Views</div>),
 }));
 
 describe("App Component", () => {
@@ -92,10 +92,10 @@ describe("App Component", () => {
     );
     const header = screen.getByTestId("header");
     expect(header).toBeInTheDocument();
-    // expect(Header).toHaveBeenCalledTimes(3);
+    expect(Header).toHaveBeenCalled();
 
     const views = screen.getByTestId("views");
     expect(views).toBeInTheDocument();
-    // expect(Views).toHaveBeenCalledTimes(3);
+    expect(Views).toHaveBeenCalled();
   });
 });

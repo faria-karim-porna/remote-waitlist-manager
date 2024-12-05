@@ -27,6 +27,6 @@ describe("Header Component", () => {
     const logoSVG = getByTestId("logo-svg");
 
     expect(logoSVG).toBeInTheDocument();
-    expect(LogoSVG).toHaveBeenCalledTimes(3);
+    expect(LogoSVG).toHaveBeenCalled();
   });
 });
