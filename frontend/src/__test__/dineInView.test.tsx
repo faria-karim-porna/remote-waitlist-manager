@@ -1,4 +1,3 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import { DineInView } from "../components/views/dineInView";
 import bgPhoto from "../assets/images/dineInBg.jpg";
