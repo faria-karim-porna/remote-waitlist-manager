@@ -1,7 +1,6 @@
 import React from "react";
 import { UserSvg } from "../assets/svg/userSvg";
 
-
 type WaitingSectionProps = {
   waitingPosition?: number;
 };
@@ -9,7 +8,7 @@ type WaitingSectionProps = {
 const WaitingSectionComponent = (props: WaitingSectionProps) => {
   const { waitingPosition } = props;
   return (
-    <div>
+    <>
       <div className="font-25 font-primary font-weight-500">Thank you for choosing us – we'll seat you soon!</div>
       <div>
         <div className="d-flex flex-column justify-content-center align-items-center">
@@ -27,7 +26,7 @@ const WaitingSectionComponent = (props: WaitingSectionProps) => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

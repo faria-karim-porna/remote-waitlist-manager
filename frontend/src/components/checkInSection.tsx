@@ -23,7 +23,7 @@ const CheckInSectionComponent = (props: CheckInSectionProps) => {
       });
   };
   return (
-    <div>
+    <>
       <div className="font-25 font-primary font-weight-500">Your table is just a check-in away. Tap to get started!</div>
       <div>
         <div>
@@ -37,7 +37,7 @@ const CheckInSectionComponent = (props: CheckInSectionProps) => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
