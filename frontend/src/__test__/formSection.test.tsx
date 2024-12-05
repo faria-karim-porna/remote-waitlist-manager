@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { FormSection } from "../components/formSection";
 import { Provider } from "react-redux";
-import { checkInUser, joinUser } from "../components/core/redux/apiSlices/userApiSlice";
+import { joinUser } from "../components/core/redux/apiSlices/userApiSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { UserAction, UserReducer } from "../components/core/redux/slices/userSlice";
 import { setUserInSessionStorage } from "../components/storages/localStorage";
