@@ -61,23 +61,42 @@ describe("App Component", () => {
     expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockResponse.data.user));
   });
 
-  // it("calls useSocket on mount", () => {
-  //   render(<App />);
-  //   expect(useSocket).toHaveBeenCalled();
-  // });
+  it("calls useSocket on mount", () => {
+    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
+    mockDispatch.mockResolvedValue({
+      payload: mockResponse,
+    });
+    // (getUserFromSessionStorage as unknown as jest.Mock).mockReturnValue(mockUserName);
+    const store = configureStore({ reducer: { user: UserReducer } });
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    );
+    expect(useSocket).toHaveBeenCalled();
+  });
 
-  // it("renders Header and Views components", () => {
-  //  render(
-  //     <Provider store={configureStore({ reducer: { user: UserReducer } })}>
-  //       <App />
-  //     </Provider>
-  //   );
-  //   const header = screen.getByTestId("header");
-  //   expect(header).toBeInTheDocument();
-  //   expect(Header).toHaveBeenCalledTimes(3);
+  it("renders Header and Views components", () => {
+    const mockUserName = "John Doe";
+    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
+    mockDispatch.mockResolvedValue({
+      payload: mockResponse,
+    });
+    // (getUserFromSessionStorage as unknown as jest.Mock).mockReturnValue(mockUserName);
+    const store = configureStore({ reducer: { user: UserReducer } });
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    );
+    const header = screen.getByTestId("header");
+    expect(header).toBeInTheDocument();
+    // expect(Header).toHaveBeenCalledTimes(3);
 
-  //   const views = screen.getByTestId("views");
-  //   expect(views).toBeInTheDocument();
-  //   expect(Views).toHaveBeenCalledTimes(3);
-  // });
+    const views = screen.getByTestId("views");
+    expect(views).toBeInTheDocument();
+    // expect(Views).toHaveBeenCalledTimes(3);
+  });
 });
