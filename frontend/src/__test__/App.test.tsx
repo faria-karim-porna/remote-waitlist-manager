@@ -3,7 +3,7 @@ import { useSocket } from "../components/hooks/useSocket";
 import App from "../App";
 import { fetchUser } from "../components/core/redux/apiSlices/userApiSlice";
 import { UserAction, UserReducer } from "../components/core/redux/slices/userSlice";
-import { getUserFromSessionStorage } from "../components/storages/localStorage";
+import { getUserFromLocalStorage } from "../components/storages/localStorage";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { Header } from "../components/common/header";
@@ -21,7 +21,7 @@ jest.mock("../components/core/redux/apiSlices/userApiSlice", () => ({
 }));
 
 jest.mock("../components/storages/localStorage", () => ({
-  getUserFromSessionStorage: jest.fn(),
+  getUserFromLocalStorage: jest.fn(),
 }));
 
 jest.mock("../components/hooks/useSocket", () => ({
@@ -54,7 +54,7 @@ describe("App Component", () => {
         <App />
       </Provider>
     );
-    expect(getUserFromSessionStorage).toHaveBeenCalled();
+    expect(getUserFromLocalStorage).toHaveBeenCalled();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(mockDispatch).toHaveBeenCalledWith(fetchUser(mockUserName));
     expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockResponse.data.user));
