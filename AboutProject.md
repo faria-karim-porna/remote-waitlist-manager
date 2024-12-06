@@ -2,6 +2,8 @@
 
 **Remote Waitlist Manager** is a full-stack MERN application designed to handle restaurant waitlists efficiently. It allows diners to join a virtual queue, get real-time updates, and check-in when their table is ready. This system replaces traditional manual queues with a digital solution that improves customer experience and streamlines restaurant operations.
 
+![](https://github.com/faria-karim-porna/remote-waitlist-manager/blob/main/video.gif)
+
 ---
 
 ## Features
