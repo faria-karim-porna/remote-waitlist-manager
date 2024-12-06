@@ -9,6 +9,10 @@ const joinUser = async (req: Request, res: Response) => {
   try {
     const totalSeatsCount = 10;
     const { name, partySize }: { name: string; partySize: number } = req.body;
+    const user = await UserRepository.findByName(name);
+    if (user) {
+      return res.status(409).json({ message: "Username already exist. Please choose a different one." });
+    }
 
     const allUserInfo = await UserRepository.findAll();
     const bookedSeatsCount = calculateCount(allUserInfo, EnumCount.BookedSeats);

@@ -18,6 +18,10 @@ const joinUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const totalSeatsCount = 10;
         const { name, partySize } = req.body;
+        const user = yield userRepository_1.UserRepository.findByName(name);
+        if (user) {
+            return res.status(409).json({ message: "Username already exist. Please choose a different one." });
+        }
         const allUserInfo = yield userRepository_1.UserRepository.findAll();
         const bookedSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.BookedSeats);
         const canCheckInSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.CanCheckInSeats);

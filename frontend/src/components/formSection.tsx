@@ -9,6 +9,9 @@ const FormSectionComponent = () => {
   const dispatch = useAppDispatch();
   const [name, setName] = useState("");
   const [partySize, setPartySize] = useState<string>("");
+  const canSubmit = () => {
+    return name && partySize;
+  };
   const handleJoin = () => {
     dispatch(joinUser({ name: name, partySize: Number(partySize) }))
       .then(unwrapResult)
@@ -16,6 +19,11 @@ const FormSectionComponent = () => {
         if (response) {
           dispatch(UserAction.setUserInfo(response));
           setUserInSessionStorage(name);
+        }
+      })
+      .catch((error) => {
+        if (error) {
+          dispatch(UserAction.setErrorMessage("Username already exist. Please choose a different one."));
         }
       });
   };
@@ -46,7 +54,7 @@ const FormSectionComponent = () => {
           className="waitlist-form-input"
         />
       </div>
-      <button onClick={() => handleJoin()} className="square-button">
+      <button onClick={() => handleJoin()} className="square-button" disabled={!canSubmit()}>
         Submit
       </button>
     </div>

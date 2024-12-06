@@ -104,6 +104,10 @@ html {
   font-weight: 500;
 }
 
+.square-button:disabled{
+  background-color: #5b11a68d;
+}
+
 .oval-button {
   background-color: white;
   border: none;

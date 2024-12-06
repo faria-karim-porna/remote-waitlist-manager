@@ -3,6 +3,7 @@ import { User } from "../../dataTypes/types/userType";
 
 export interface UserState {
   userInfo?: User;
+  message?: string;
 }
 
 const initialState: UserState = {};
@@ -19,6 +20,9 @@ const UserSlice = createSlice({
     },
     updateUserInfo(state, action: PayloadAction<Partial<User>>) {
       state.userInfo = { ...state.userInfo, ...action.payload };
+    },
+    setErrorMessage(state, action: PayloadAction<string>) {
+      state.message = action.payload;
     },
   },
 });
