@@ -172,4 +172,4 @@ Ensure the following tools are installed:
 
 ## About Project
 
-* To learn more about the Remote Waitlist Manager and for project setup instructions, [click here]([./README.md](https://github.com/faria-karim-porna/remote-waitlist-manager/blob/readme-files/AboutProject.md)).
+* To learn more about the Remote Waitlist Manager and for project setup instructions, [click here](https://github.com/faria-karim-porna/remote-waitlist-manager/blob/main/AboutProject.md).
