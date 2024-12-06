@@ -11,42 +11,43 @@ const joinUser = async (req: Request, res: Response) => {
     const { name, partySize }: { name: string; partySize: number } = req.body;
     const user = await UserRepository.findByName(name);
     if (user) {
-      return res.status(409).json({ message: "Username already exist. Please choose a different one." });
-    }
-
-    const allUserInfo = await UserRepository.findAll();
-    const bookedSeatsCount = calculateCount(allUserInfo, EnumCount.BookedSeats);
-    const canCheckInSeatsCount = calculateCount(allUserInfo, EnumCount.CanCheckInSeats);
-    const usersInWaitingListCount = calculateCount(allUserInfo, EnumCount.UsersInWaiting);
-
-    const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
-    const isSeatAvailable = partySize <= availableSeatsCount;
-    const isNoUserInWaiting = usersInWaitingListCount === 0;
-
-    let newUser: User = {
-      name: name,
-      partySize: partySize,
-    };
-
-    const canSeatIn = isSeatAvailable && isNoUserInWaiting;
-
-    if (canSeatIn) {
-      newUser = { ...newUser, status: EnumStatus.SeatIn };
-      await UserRepository.createUser(newUser);
-      res.status(201).json({ message: "New user has been added", user: newUser });
-      runScheduleService(name, partySize);
+      res.status(409).json({ message: "Username already exist. Please choose a different one."});
+      return;
     } else {
-      newUser = {
-        ...newUser,
-        status: EnumStatus.InWaitingList,
-        canCheckIn: false,
+      const allUserInfo = await UserRepository.findAll();
+      const bookedSeatsCount = calculateCount(allUserInfo, EnumCount.BookedSeats);
+      const canCheckInSeatsCount = calculateCount(allUserInfo, EnumCount.CanCheckInSeats);
+      const usersInWaitingListCount = calculateCount(allUserInfo, EnumCount.UsersInWaiting);
+
+      const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
+      const isSeatAvailable = partySize <= availableSeatsCount;
+      const isNoUserInWaiting = usersInWaitingListCount === 0;
+
+      let newUser: User = {
+        name: name,
+        partySize: partySize,
       };
-      await UserRepository.createUser(newUser);
 
-      const waitingPosition = await getUserWaitingPositionByName(name);
-      newUser = { ...newUser, waitingPosition: waitingPosition };
+      const canSeatIn = isSeatAvailable && isNoUserInWaiting;
 
-      res.status(201).json({ message: "New user has been added", user: newUser });
+      if (canSeatIn) {
+        newUser = { ...newUser, status: EnumStatus.SeatIn };
+        await UserRepository.createUser(newUser);
+        res.status(201).json({ message: "New user has been added", user: newUser });
+        runScheduleService(name, partySize);
+      } else {
+        newUser = {
+          ...newUser,
+          status: EnumStatus.InWaitingList,
+          canCheckIn: false,
+        };
+        await UserRepository.createUser(newUser);
+
+        const waitingPosition = await getUserWaitingPositionByName(name);
+        newUser = { ...newUser, waitingPosition: waitingPosition };
+
+        res.status(201).json({ message: "New user has been added", user: newUser });
+      }
     }
   } catch (error) {
     res.status(500).json({ message: "Failed to add user", error: error });

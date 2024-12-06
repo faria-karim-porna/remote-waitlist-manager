@@ -87,6 +87,14 @@ describe("User Join API", () => {
         expect(response.body.user.waitingPosition).toBe(3);
         expect(response.body.user.canCheckIn).toBe(false);
     }));
+    it("should not create a new user if the username alrady exists", () => __awaiter(void 0, void 0, void 0, function* () {
+        const response = yield (0, supertest_1.default)(server_1.app).post("/api/join").send({
+            name: "Akash Gupta",
+            partySize: 5,
+        });
+        expect(response.status).toBe(409);
+        expect(response.body.message).toBe("Username already exist. Please choose a different one.");
+    }));
 });
 describe("User Delete API", () => {
     it("should delete a user", () => __awaiter(void 0, void 0, void 0, function* () {
