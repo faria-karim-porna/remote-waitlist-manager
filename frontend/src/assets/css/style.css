@@ -243,6 +243,14 @@ html {
     background-position: right !important;
   }
 
+  .username{
+    white-space: nowrap; 
+    width: 100px; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid red;
+  }
+
   .form-view-main {
     width: 100%;
     padding: 20px 20px 20px 20px;
