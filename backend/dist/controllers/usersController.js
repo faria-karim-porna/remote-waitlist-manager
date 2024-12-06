@@ -79,9 +79,6 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const waitingPosition = yield (0, countOrPositionHelper_1.getUserWaitingPositionByName)(name);
         user = Object.assign(Object.assign({}, user), { waitingPosition: waitingPosition });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
         res.status(200).json({ user: user });
     }
     catch (error) {
