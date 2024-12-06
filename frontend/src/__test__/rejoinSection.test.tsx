@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { RejoinSection } from "../components/rejoinSection";
 import { deleteUser } from "../components/core/redux/apiSlices/userApiSlice";
 import { UserAction } from "../components/core/redux/slices/userSlice";
-import { clearSessionStorage } from "../components/storages/localStorage";
+import { clearLocalStorage } from "../components/storages/localStorage";
 
 const mockDispatch = jest.fn();
 
@@ -16,7 +16,7 @@ jest.mock("../components/core/redux/apiSlices/userApiSlice", () => ({
 }));
 
 jest.mock("../components/storages/localStorage", () => ({
-  clearSessionStorage: jest.fn(),
+  clearLocalStorage: jest.fn(),
 }));
 
 jest.mock("../components/core/redux/slices/userSlice", () => ({
@@ -61,7 +61,7 @@ describe("RejoinSection Component", () => {
     fireEvent.click(screen.getByText("Join with us again"));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(deleteUser).toHaveBeenCalledWith("John Doe");
-    expect(clearSessionStorage).toHaveBeenCalled();
+    expect(clearLocalStorage).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(UserAction.removeUserInfo());
   });
 });

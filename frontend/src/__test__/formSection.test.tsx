@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { joinUser } from "../components/core/redux/apiSlices/userApiSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { UserAction, UserReducer } from "../components/core/redux/slices/userSlice";
-import { setUserInSessionStorage } from "../components/storages/localStorage";
+import { setUserInLocalStorage } from "../components/storages/localStorage";
 
 const mockDispatch = jest.fn();
 
@@ -18,7 +18,7 @@ jest.mock("../components/core/redux/apiSlices/userApiSlice", () => ({
 }));
 
 jest.mock("../components/storages/localStorage", () => ({
-  setUserInSessionStorage: jest.fn(),
+  setUserInLocalStorage: jest.fn(),
 }));
 
 describe("FormSection Component", () => {
@@ -56,7 +56,7 @@ describe("FormSection Component", () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockUserResponse));
 
-    expect(setUserInSessionStorage).toHaveBeenCalledWith("John Doe");
+    expect(setUserInLocalStorage).toHaveBeenCalledWith("John Doe");
   });
 
   it("should not allow invalid party size input", () => {

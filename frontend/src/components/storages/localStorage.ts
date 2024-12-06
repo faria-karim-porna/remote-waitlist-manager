@@ -1,12 +1,12 @@
-export const setUserInSessionStorage = (name: string) => {
-  sessionStorage.setItem("user", name);
+export const setUserInLocalStorage = (name: string) => {
+  localStorage.setItem("user", name);
 };
 
-export const getUserFromSessionStorage = () => {
-  const storedUser = sessionStorage.getItem("user") ?? "";
+export const getUserFromLocalStorage = () => {
+  const storedUser = localStorage.getItem("user") ?? "";
   return storedUser;
 };
 
-export const clearSessionStorage = () => {
-  sessionStorage.clear();
+export const clearLocalStorage = () => {
+  localStorage.clear();
 };

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { joinUser } from "./core/redux/apiSlices/userApiSlice";
 import { UserAction } from "./core/redux/slices/userSlice";
-import { setUserInSessionStorage } from "./storages/localStorage";
+import { setUserInLocalStorage } from "./storages/localStorage";
 import { useAppDispatch } from "./core/redux/store";
 
 const FormSectionComponent = () => {
@@ -18,7 +18,7 @@ const FormSectionComponent = () => {
       .then((response) => {
         if (response) {
           dispatch(UserAction.setUserInfo(response));
-          setUserInSessionStorage(name);
+          setUserInLocalStorage(name);
         }
       })
       .catch((error) => {

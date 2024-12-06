@@ -3,7 +3,7 @@ import { useSocket } from "../components/hooks/useSocket";
 import App from "../App";
 import { fetchUser } from "../components/core/redux/apiSlices/userApiSlice";
 import { UserAction, UserReducer } from "../components/core/redux/slices/userSlice";
-import { getUserFromSessionStorage } from "../components/storages/localStorage";
+import { getUserFromLocalStorage } from "../components/storages/localStorage";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { Header } from "../components/common/header";
@@ -21,7 +21,7 @@ jest.mock("../components/core/redux/apiSlices/userApiSlice", () => ({
 }));
 
 jest.mock("../components/storages/localStorage", () => ({
-  getUserFromSessionStorage: jest.fn(),
+  getUserFromLocalStorage: jest.fn(),
 }));
 
 jest.mock("../components/hooks/useSocket", () => ({
@@ -43,7 +43,7 @@ describe("App Component", () => {
 
   it("calls fetchUser with the username from session storage and set the response in store on mount", async () => {
     const mockUserName = "John Doe";
-    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    const mockResponse = { name: "John Doe", partySize: 4 };
     (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
@@ -54,14 +54,14 @@ describe("App Component", () => {
         <App />
       </Provider>
     );
-    expect(getUserFromSessionStorage).toHaveBeenCalled();
+    expect(getUserFromLocalStorage).toHaveBeenCalled();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(mockDispatch).toHaveBeenCalledWith(fetchUser(mockUserName));
-    expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockResponse.data.user));
+    expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockResponse));
   });
 
   it("calls useSocket on mount", () => {
-    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    const mockResponse = { name: "John Doe", partySize: 4 };
     (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
@@ -76,7 +76,7 @@ describe("App Component", () => {
   });
 
   it("renders Header and Views components", () => {
-    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    const mockResponse = { name: "John Doe", partySize: 4 };
     (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
     mockDispatch.mockResolvedValue({
       payload: mockResponse,

@@ -2,7 +2,7 @@ import React from "react";
 import { useAppDispatch } from "./core/redux/store";
 import { deleteUser } from "./core/redux/apiSlices/userApiSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
-import { clearSessionStorage } from "./storages/localStorage";
+import { clearLocalStorage } from "./storages/localStorage";
 import { UserAction } from "./core/redux/slices/userSlice";
 import { TextSection } from "./textSection";
 
@@ -18,7 +18,7 @@ const RejoinSectionComponent = (props: RejoinSectionProps) => {
     dispatch(deleteUser(name))
       .then(unwrapResult)
       .then(() => {
-        clearSessionStorage();
+        clearLocalStorage();
         dispatch(UserAction.removeUserInfo());
       });
   };
