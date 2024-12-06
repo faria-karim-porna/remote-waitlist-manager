@@ -2,8 +2,16 @@ import React from "react";
 import { BackgroundContainer } from "../common/backgroundContainer";
 import bgPhoto from "../../assets/images/formViewBg.png";
 import { FormSection } from "../formSection";
+import { useAppSelector } from "../core/redux/store";
+import { shallowEqual } from "react-redux";
 
 const FormViewComponent = () => {
+  const store = useAppSelector(
+    (state) => ({
+      errorMessage: state.user.message,
+    }),
+    shallowEqual
+  );
   return (
     <BackgroundContainer imageURL={bgPhoto}>
       <div className="d-flex justify-content-center h-100">
@@ -17,6 +25,7 @@ const FormViewComponent = () => {
                   the wait by booking through TableCheck.
                 </div>
               </div>
+              {store.errorMessage ? <div className="text-danger font-22">{store.errorMessage}</div> : null}
             </div>
             <FormSection />
           </div>

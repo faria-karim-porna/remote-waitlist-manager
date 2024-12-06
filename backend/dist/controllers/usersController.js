@@ -18,30 +18,37 @@ const joinUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const totalSeatsCount = 10;
         const { name, partySize } = req.body;
-        const allUserInfo = yield userRepository_1.UserRepository.findAll();
-        const bookedSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.BookedSeats);
-        const canCheckInSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.CanCheckInSeats);
-        const usersInWaitingListCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.UsersInWaiting);
-        const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
-        const isSeatAvailable = partySize <= availableSeatsCount;
-        const isNoUserInWaiting = usersInWaitingListCount === 0;
-        let newUser = {
-            name: name,
-            partySize: partySize,
-        };
-        const canSeatIn = isSeatAvailable && isNoUserInWaiting;
-        if (canSeatIn) {
-            newUser = Object.assign(Object.assign({}, newUser), { status: enums_1.EnumStatus.SeatIn });
-            yield userRepository_1.UserRepository.createUser(newUser);
-            res.status(201).json({ message: "New user has been added", user: newUser });
-            (0, scheduleService_1.runScheduleService)(name, partySize);
+        const user = yield userRepository_1.UserRepository.findByName(name);
+        if (user) {
+            res.status(409).json({ message: "Username already exist. Please choose a different one." });
+            return;
         }
         else {
-            newUser = Object.assign(Object.assign({}, newUser), { status: enums_1.EnumStatus.InWaitingList, canCheckIn: false });
-            yield userRepository_1.UserRepository.createUser(newUser);
-            const waitingPosition = yield (0, countOrPositionHelper_1.getUserWaitingPositionByName)(name);
-            newUser = Object.assign(Object.assign({}, newUser), { waitingPosition: waitingPosition });
-            res.status(201).json({ message: "New user has been added", user: newUser });
+            const allUserInfo = yield userRepository_1.UserRepository.findAll();
+            const bookedSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.BookedSeats);
+            const canCheckInSeatsCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.CanCheckInSeats);
+            const usersInWaitingListCount = (0, countOrPositionHelper_1.calculateCount)(allUserInfo, enums_1.EnumCount.UsersInWaiting);
+            const availableSeatsCount = totalSeatsCount - (bookedSeatsCount + canCheckInSeatsCount);
+            const isSeatAvailable = partySize <= availableSeatsCount;
+            const isNoUserInWaiting = usersInWaitingListCount === 0;
+            let newUser = {
+                name: name,
+                partySize: partySize,
+            };
+            const canSeatIn = isSeatAvailable && isNoUserInWaiting;
+            if (canSeatIn) {
+                newUser = Object.assign(Object.assign({}, newUser), { status: enums_1.EnumStatus.SeatIn });
+                yield userRepository_1.UserRepository.createUser(newUser);
+                res.status(201).json({ message: "New user has been added", user: newUser });
+                (0, scheduleService_1.runScheduleService)(name, partySize);
+            }
+            else {
+                newUser = Object.assign(Object.assign({}, newUser), { status: enums_1.EnumStatus.InWaitingList, canCheckIn: false });
+                yield userRepository_1.UserRepository.createUser(newUser);
+                const waitingPosition = yield (0, countOrPositionHelper_1.getUserWaitingPositionByName)(name);
+                newUser = Object.assign(Object.assign({}, newUser), { waitingPosition: waitingPosition });
+                res.status(201).json({ message: "New user has been added", user: newUser });
+            }
         }
     }
     catch (error) {
