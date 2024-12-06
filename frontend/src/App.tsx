@@ -11,14 +11,13 @@ import { Views } from "./components/views/views";
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
   useSocket();
-
+  const userName = getUserFromLocalStorage();
   useEffect(() => {
-    const userName = getUserFromLocalStorage();
     dispatch(fetchUser(userName ?? ""))
       .then(unwrapResult)
       .then((response) => {
         if (response) {
-          dispatch(UserAction.setUserInfo(response.data.user));
+          dispatch(UserAction.setUserInfo(response));
         }
       });
   }, []);

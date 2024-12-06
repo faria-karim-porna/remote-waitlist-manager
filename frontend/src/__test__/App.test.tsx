@@ -43,7 +43,7 @@ describe("App Component", () => {
 
   it("calls fetchUser with the username from session storage and set the response in store on mount", async () => {
     const mockUserName = "John Doe";
-    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    const mockResponse = { name: "John Doe", partySize: 4 };
     (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
@@ -57,11 +57,11 @@ describe("App Component", () => {
     expect(getUserFromLocalStorage).toHaveBeenCalled();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(mockDispatch).toHaveBeenCalledWith(fetchUser(mockUserName));
-    expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockResponse.data.user));
+    expect(mockDispatch).toHaveBeenCalledWith(UserAction.setUserInfo(mockResponse));
   });
 
   it("calls useSocket on mount", () => {
-    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    const mockResponse = { name: "John Doe", partySize: 4 };
     (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
@@ -76,7 +76,7 @@ describe("App Component", () => {
   });
 
   it("renders Header and Views components", () => {
-    const mockResponse = { data: { user: { name: "John Doe", partySize: 4 } } };
+    const mockResponse = { name: "John Doe", partySize: 4 };
     (fetchUser as unknown as jest.Mock).mockResolvedValue(mockResponse);
     mockDispatch.mockResolvedValue({
       payload: mockResponse,
