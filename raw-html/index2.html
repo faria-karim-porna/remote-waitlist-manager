@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Remote Waitlist Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://ai-public.creatie.ai/gen_page/tailwind-custom.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com/3.4.5?plugins=forms@0.5.7,typography@0.5.13,aspect-ratio@0.4.2,container-queries@0.1.1"></script>
+    <script src="https://ai-public.creatie.ai/gen_page/tailwind-config.min.js" data-color="#000000" data-border-radius="small"></script>
+  </head>
+  <body class="bg-gray-50 font-sans">
+    <nav class="bg-white shadow">
+      <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex">
+            <div class="flex-shrink-0 flex items-center">
+              <img class="h-8 w-auto" src="https://ai-public.creatie.ai/gen_page/logo_placeholder.png" alt="Logo" />
+              <span class="ml-2 text-xl font-semibold text-gray-900">Restaurant Name</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <button class="!rounded-button bg-custom text-white px-4 py-2 text-sm font-medium">Staff Login</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div>
+          <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Current Wait Time</h2>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-4xl font-bold text-custom">45 mins</p>
+                <p class="text-gray-500">Estimated wait time</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">12</p>
+                <p class="text-gray-500">Parties ahead</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-6">Join the Queue</h2>
+            <form>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                  <input type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Party Size</label>
+                  <select class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <option>1-2 people</option>
+                    <option>3-4 people</option>
+                    <option>5-6 people</option>
+                    <option>7+ people</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                  <input type="tel" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Special Requests</label>
+                  <textarea class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" rows="3"></textarea>
+                </div>
+                <button type="submit" class="!rounded-button w-full bg-custom text-white py-3 font-medium">Join Queue</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div>
+          <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-6">Your Status</h2>
+            <div class="relative">
+              <div class="flex items-center mb-8">
+                <div class="w-12 h-12 flex items-center justify-center rounded-full bg-custom text-white">
+                  <i class="fas fa-user-clock text-xl"></i>
+                </div>
+                <div class="ml-4">
+                  <h3 class="font-semibold">Position in Queue</h3>
+                  <p class="text-3xl font-bold text-custom">#5</p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="flex items-center">
+                  <div class="w-8 h-8 flex items-center justify-center rounded-full bg-green-500 text-white">
+                    <i class="fas fa-check text-sm"></i>
+                  </div>
+                  <div class="ml-4">
+                    <p class="font-medium">Joined Queue</p>
+                    <p class="text-sm text-gray-500">7:30 PM</p>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white">
+                    <i class="fas fa-clock text-sm"></i>
+                  </div>
+                  <div class="ml-4">
+                    <p class="font-medium">Almost Ready</p>
+                    <p class="text-sm text-gray-500">Estimated: 8:15 PM</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold mb-6">Check-in</h2>
+            <div class="text-center">
+              <img
+                src="qr-code.jpg"
+                alt="Check-in QR Code"
+                class="mx-auto mb-4"
+              />
+              <p class="text-gray-600 mb-4">Scan this QR code when your table is ready</p>
+              <button class="!rounded-button bg-gray-200 text-gray-500 px-6 py-3 font-medium w-full" disabled>Table Not Ready Yet</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-12">
+      <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
+            <p class="text-gray-300">123 Restaurant Street</p>
+            <p class="text-gray-300">New York, NY 10001</p>
+            <p class="text-gray-300">Phone: (555) 123-4567</p>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Hours</h3>
+            <p class="text-gray-300">Monday - Friday: 11am - 10pm</p>
+            <p class="text-gray-300">Saturday: 10am - 11pm</p>
+            <p class="text-gray-300">Sunday: 10am - 9pm</p>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Support</h3>
+            <ul class="space-y-2">
+              <li><a href="#" class="text-gray-300 hover:text-white">Help Center</a></li>
+              <li><a href="#" class="text-gray-300 hover:text-white">FAQs</a></li>
+              <li><a href="#" class="text-gray-300 hover:text-white">Contact Support</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
